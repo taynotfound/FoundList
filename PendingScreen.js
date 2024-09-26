@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TextInput, Button, TouchableOpacity }
 import { getTextColor } from './colorUtils'; // Import the utility function
 import { Swipeable } from 'react-native-gesture-handler'; // Import Swipeable
 import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Import GestureHandlerRootView
+import Icon from 'react-native-vector-icons/Ionicons'; // Import Ionicons
 
 const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, colors }) => {
   const [newTodo, setNewTodo] = useState('');
@@ -19,14 +20,14 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
 
   const renderItem = ({ item }) => {
     const renderRightActions = () => (
-      <TouchableOpacity onPress={() => deleteTodo(item.id)}>
-        <Text style={styles.buttonText}>Delete</Text>
+      <TouchableOpacity onPress={() => deleteTodo(item.id)} style={styles.actionButton}>
+        <Icon name="trash" size={24} color="#FF3B30" />
       </TouchableOpacity>
     );
 
     const renderLeftActions = () => (
-      <TouchableOpacity onPress={() => resolveTodo(item.id)}>
-        <Text style={styles.buttonText}>Resolve</Text>
+      <TouchableOpacity onPress={() => resolveTodo(item.id)} style={styles.actionButton}>
+        <Icon name="checkmark-circle" size={24} color="#4CD964" />
       </TouchableOpacity>
     );
 
@@ -68,14 +69,16 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   input: {
-    height: 40,
+    height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
+    borderRadius: 5,
     marginBottom: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
   },
   todoItem: {
-    padding: 10,
+    padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     flexDirection: 'row',
@@ -83,16 +86,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     marginBottom: 5,
+    backgroundColor: '#f9f9f9',
   },
   todoText: {
     fontSize: 16,
+    flex: 1,
   },
-  buttonsContainer: {
-    flexDirection: 'row',
-  },
-  buttonText: {
-    marginLeft: 10,
-    color: '#007BFF',
+  actionButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 50,
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
 });
 
