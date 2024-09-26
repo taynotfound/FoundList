@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button, TouchableOpacity } from 'react-native';
 import { getTextColor } from './colorUtils'; // Import the utility function
+import { Swipeable } from 'react-native-gesture-handler'; // Import Swipeable
 
 const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, colors }) => {
   const [newTodo, setNewTodo] = useState('');
@@ -15,6 +16,31 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
 
   const textColor = getTextColor(colors.background); // Get text color based on background
 
+  const renderItem = ({ item }) => {
+    const renderRightActions = () => (
+      <TouchableOpacity onPress={() => deleteTodo(item.id)}>
+        <Text style={styles.buttonText}>Delete</Text>
+      </TouchableOpacity>
+    );
+
+    const renderLeftActions = () => (
+      <TouchableOpacity onPress={() => resolveTodo(item.id)}>
+        <Text style={styles.buttonText}>Resolve</Text>
+      </TouchableOpacity>
+    );
+
+    return (
+      <Swipeable
+        renderRightActions={renderRightActions}
+        renderLeftActions={renderLeftActions}
+      >
+        <View style={styles.todoItem}>
+          <Text style={[styles.todoText, { color: textColor }]}>{item.text}</Text>
+        </View>
+      </Swipeable>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <TextInput
@@ -27,19 +53,7 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.todoItem}>
-            <Text style={[styles.todoText, { color: textColor }]}>{item.text}</Text>
-            <View style={styles.buttonsContainer}>
-              <TouchableOpacity onPress={() => resolveTodo(item.id)}>
-                <Text style={styles.buttonText}>Resolve</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteTodo(item.id)}>
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        renderItem={renderItem} // Use the new renderItem function
       />
     </View>
   );
