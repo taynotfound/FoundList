@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button, TouchableOpacity } from 'react-native';
 import { getTextColor } from './colorUtils'; // Import the utility function
 import { Swipeable } from 'react-native-gesture-handler'; // Import Swipeable
+import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Import GestureHandlerRootView
 
 const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, colors }) => {
   const [newTodo, setNewTodo] = useState('');
@@ -42,20 +43,22 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <TextInput
-        style={[styles.input, { backgroundColor: colors.inputBackground }]}
-        placeholder="Add a new todo"
-        value={newTodo}
-        onChangeText={setNewTodo}
-      />
-      <Button title="Add Todo" onPress={handleAddTodo} color={colors.buttonBackground} />
-      <FlatList
-        data={todos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem} // Use the new renderItem function
-      />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.inputBackground }]}
+          placeholder="Add a new todo"
+          value={newTodo}
+          onChangeText={setNewTodo}
+        />
+        <Button title="Add Todo" onPress={handleAddTodo} color={colors.buttonBackground} />
+        <FlatList
+          data={todos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+        />
+      </View>
+    </GestureHandlerRootView>
   );
 };
 
