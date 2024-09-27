@@ -81,7 +81,7 @@ export default function App() {
         screenOptions={{
           tabBarStyle: { backgroundColor: colors.background },
           tabBarActiveTintColor: textColor,
-          tabBarInactiveTintColor: '#A8C8B9',
+          tabBarInactiveTintColor: colors.ResolvedButtonBackground,
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.buttonBackground,
         }}
