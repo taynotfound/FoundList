@@ -11,7 +11,7 @@ const ResolvedScreen = ({ resolvedTodos, colors }) => {
         data={resolvedTodos}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.todoItem}>
+          <View style={[styles.todoItem, {backgroundColor: colors.todoBackground}]}>
             <Text style={[styles.todoText, { color: textColor }]}>{item.text}</Text>
           </View>
         )}
