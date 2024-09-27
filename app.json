@@ -23,7 +23,7 @@
       "package": "de.taymaerz.foundlist"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "eas": {
