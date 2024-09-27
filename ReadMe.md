@@ -12,6 +12,9 @@
 - [Expo](https://expo.dev)
 - [React Native](https://reactnative.dev)
 
+## Support
+Support is offered over my Discord Server:
+[https://discord.gg/tn33wSpU](https://discord.gg/tn33wSpU)
 ## Getting Started
 
 To get a local copy up and running, follow these steps:
