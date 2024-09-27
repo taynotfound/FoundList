@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; // Ensure Ionicons is imported
 import SettingsScreen from './SettingsScreen'; // Import the SettingsScreen
 import ResolvedScreen from './ResolvedScreen'; // Import the ResolvedScreen
 import PendingScreen from './PendingScreen'; // Import the PendingScreen
 import CustomToast from './CustomToast'; // Ensure you import your CustomToast component
-import { ColorProvider } from './ColorContext'; // Import the ColorProvider
+import { getTextColor } from './colorUtils'; // Import the utility function
 
 const Tab = createBottomTabNavigator();
 
@@ -73,52 +73,57 @@ export default function App() {
       setToastVisible(false);
     }, 2000); // Hide toast after 2 seconds
   };
+  const textColor = getTextColor(colors.background); // Get text color based on background
 
   return (
-    <ColorProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            tabBarStyle: { backgroundColor: colors.background },
-            tabBarActiveTintColor: '#b38a58',
-            tabBarInactiveTintColor: '#A8C8B9',
-            headerTitle: 'FoundList',
-            headerTitleAlign: 'center',
-            headerStyle: { backgroundColor: colors.background },
-            headerTintColor: '#b38a58',
-            tabBarLabelStyle: { paddingBottom: 5 },
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarStyle: { backgroundColor: colors.background },
+          tabBarActiveTintColor: textColor,
+          tabBarInactiveTintColor: '#A8C8B9',
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.buttonBackground,
+        }}
+      >
+        <Tab.Screen 
+          name="Pending" 
+          children={() => (
+            <PendingScreen 
+              todos={todos} 
+              addTodo={addTodo} 
+              resolveTodo={resolveTodo} 
+              deleteTodo={deleteTodo} 
+              showToast={showToast} 
+              colors={colors} // Ensure colors are passed
+            />
+          )} 
+          options={{
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="list" size={24} color={color} />
+            ),
           }}
-        >
-          <Tab.Screen 
-            name="Pending" 
-            options={{
-              tabBarLabel: 'Pending',
-              tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} />,
-            }}
-          >
-            {() => <PendingScreen todos={todos} addTodo={addTodo} resolveTodo={resolveTodo} deleteTodo={deleteTodo} showToast={showToast} colors={colors} />}
-          </Tab.Screen>
-          <Tab.Screen 
-            name="Resolved" 
-            options={{
-              tabBarLabel: 'Resolved',
-              tabBarIcon: ({ color }) => <Ionicons name="checkmark-done" size={24} color={color} />,
-            }}
-          >
-            {() => <ResolvedScreen resolvedTodos={resolvedTodos} colors={colors} />}
-          </Tab.Screen>
-          <Tab.Screen 
-            name="Settings" 
-            component={SettingsScreen} 
-            initialParams={{ colors, defaultColors }} // Remove setColors
-            options={{
-              tabBarLabel: 'Settings',
-              tabBarIcon: ({ color }) => <Ionicons name="settings" size={24} color={color} />,
-            }}
-          />
-        </Tab.Navigator>
-        <CustomToast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
-      </NavigationContainer>
-    </ColorProvider>
+        />
+        <Tab.Screen 
+          name="Resolved" 
+          children={() => <ResolvedScreen resolvedTodos={resolvedTodos} colors={colors} />} 
+          options={{
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="checkmark-done" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen 
+          name="Settings" 
+          children={() => <SettingsScreen setColors={setColors} colors = {colors} />} 
+          options={{
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="settings" size={24} color={color} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+      <CustomToast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
+    </NavigationContainer>
   );
 }
