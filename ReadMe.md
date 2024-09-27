@@ -5,7 +5,7 @@
 ## Features
 
 - **Swipe to Resolve / Delete** 
-- **Customize every Color**
+- **Multiple Color Palettes**
 
 ## Built With
 
