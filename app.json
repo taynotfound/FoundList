@@ -12,7 +12,8 @@
       "backgroundColor": "#153238"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "de.taymaerz.foundlist"
     },
     "android": {
       "adaptiveIcon": {
