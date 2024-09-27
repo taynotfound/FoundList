@@ -20,14 +20,18 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
 
   const renderItem = ({ item }) => {
     const renderRightActions = () => (
-      <TouchableOpacity onPress={() => deleteTodo(item.id)} style={styles.actionButton}>
-        <Icon name="trash" size={24} color="#FF3B30" />
+      <TouchableOpacity onPress={() => deleteTodo(item.id)} style={[styles.actionButton, { marginVertical: 5 }]}>
+        <View style={[styles.swipeButton, { backgroundColor: '#FF3B30' }]}>
+          <Icon name="trash" size={26} color="#fff" />
+        </View>
       </TouchableOpacity>
     );
 
     const renderLeftActions = () => (
-      <TouchableOpacity onPress={() => resolveTodo(item.id)} style={styles.actionButton}>
-        <Icon name="checkmark-circle" size={24} color="#4CD964" />
+      <TouchableOpacity onPress={() => resolveTodo(item.id)} style={[styles.actionButton, { marginVertical: 5 }]}>
+        <View style={[styles.swipeButton, { backgroundColor: '#4CD964' }]}>
+          <Icon name="checkmark-circle" size={26} color="#fff" />
+        </View>
       </TouchableOpacity>
     );
 
@@ -36,7 +40,7 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
         renderRightActions={renderRightActions}
         renderLeftActions={renderLeftActions}
       >
-        <View style={styles.todoItem}>
+        <View style={[styles.todoItem, { backgroundColor: colors.todoBackground }]}>
           <Text style={[styles.todoText, { color: textColor }]}>{item.text}</Text>
         </View>
       </Swipeable>
@@ -78,6 +82,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   todoItem: {
+    marginVertical: 20,
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
@@ -86,7 +91,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     marginBottom: 5,
-    backgroundColor: '#f9f9f9',
   },
   todoText: {
     fontSize: 16,
@@ -97,7 +101,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 50,
     height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  swipeButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 5,
   },
 });
 
