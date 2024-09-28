@@ -35,6 +35,7 @@ export default function App() {
         const storedResolvedTodos = await AsyncStorage.getItem('resolvedTodos');
         if (storedTodos) setTodos(JSON.parse(storedTodos));
         if (storedColors) setColors(JSON.parse(storedColors));
+        if (storedResolvedTodos) setResolvedTodos(JSON.parse(storedResolvedTodos));
       } catch (error) {
         console.error('Failed to load data:', error);
       }
