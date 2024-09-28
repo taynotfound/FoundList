@@ -3,7 +3,8 @@ import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { getTextColor } from './colorUtils';
 
-const SettingsScreen = ({ setColors, colors, setTheme, theme }) => {
+
+const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode }) => {
   const [isLightMode, setIsLightMode] = useState(false); // Default to Dark mode
   const [selectedTheme, setSelectedTheme] = useState('sunsetBloom'); // Default to Dark Default
   const textColor = getTextColor(colors.background);
@@ -98,9 +99,7 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme }) => {
     },
   };
 
-  useEffect(() => {
-    setColors(darkTheme.sunsetBloom); // Set default to Dark Sunset Bloom (Dark Default)
-  }, []);
+
 
   const toggleThemeMode = (lightMode) => {
     setIsLightMode(lightMode);
@@ -113,10 +112,13 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme }) => {
   const themeOptions = isLightMode ? lightTheme : darkTheme;
 
   const selectTheme = (themeKey) => {
+    console.log('Selected theme:', themeKey);
+    console.log('Colors:', themeOptions[themeKey]);
     setColors(themeOptions[themeKey]);
     setSelectedTheme(themeKey);
     setTheme(themeKey);
-  };
+    updateThemeMode(themeOptions[themeKey], themeOptions);
+    };
 
   // Utility function to dynamically set text width based on length
   const getTextWidthStyle = (themeKey) => {
