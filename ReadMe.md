@@ -29,7 +29,11 @@ Made on ![Arch](https://img.shields.io/badge/Arch%20Linux-1793D1?logo=arch-linux
 ## Support ![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)
 Support is offered over my Discord Server:
 [https://discord.gg/tn33wSpU](https://discord.gg/tn33wSpU)
-## Getting Started
+
+## Installing the App
+Open the Latest [Release Note](https://github.com/taynotfound/FoundList/releases) and download the APK which you can find under the point "Assets".
+
+## Contributing
 
 To get a local copy up and running, follow these steps:
 
@@ -49,7 +53,7 @@ To get a local copy up and running, follow these steps:
    npm start
    ```
 
-## Building the APK
+### Building the APK
 
 To generate an APK, run the following command:
 ```bash
