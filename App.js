@@ -26,6 +26,7 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState(''); // Ensure this is defined
   const [toastVisible, setToastVisible] = useState(false);
   const [colors, setColors] = useState(defaultColors);
+  const [theme, setTheme] = useState('Sunset Bloom');
 
   useEffect(() => {
     const loadData = async () => {
@@ -49,6 +50,24 @@ export default function App() {
     const updatedTodos = [...todos, newTodo];
     setTodos(updatedTodos);
     await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
+  };
+
+  const unresolveTodo = async (id) => {
+    const todoToUnresolve = resolvedTodos.find((todo) => todo.id === id);
+    if (todoToUnresolve) {
+      const updatedTodos = [...todos, todoToUnresolve];
+      const updatedResolvedTodos = resolvedTodos.filter((todo) => todo.id !== id);
+      setTodos(updatedTodos);
+      setResolvedTodos(updatedResolvedTodos);
+      await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
+      await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
+    }
+  };
+
+  const deleteResolvedTodo = async (id) => {
+    const updatedResolvedTodos = resolvedTodos.filter((todo) => todo.id !== id);
+    setResolvedTodos(updatedResolvedTodos);
+    await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
   };
 
   const resolveTodo = async (id) => {
@@ -109,7 +128,7 @@ export default function App() {
         />
         <Tab.Screen 
           name="Resolved" 
-          children={() => <ResolvedScreen resolvedTodos={resolvedTodos} colors={colors} />} 
+          children={() => <ResolvedScreen resolvedTodos={resolvedTodos} colors={colors} deleteTodo={deleteResolvedTodo} unresolveTodo={unresolveTodo} />} 
           options={{
             tabBarIcon: ({ color }) => (
               <Ionicons name="checkmark-done" size={24} color={color} />
@@ -118,7 +137,7 @@ export default function App() {
         />
         <Tab.Screen 
           name="Settings" 
-          children={() => <SettingsScreen setColors={setColors} colors = {colors} />} 
+          children={() => <SettingsScreen setColors={setColors} colors = {colors} setTheme={setTheme} theme={theme} />} 
           options={{
             tabBarIcon: ({ color }) => (
               <Ionicons name="settings" size={24} color={color} />
