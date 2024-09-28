@@ -23,7 +23,7 @@ const defaultColors = {
 export default function App() {
   const [todos, setTodos] = useState([]);
   const [resolvedTodos, setResolvedTodos] = useState([]);
-  const [toastMessage, setToastMessage] = useState(''); // Ensure this is defined
+  const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [colors, setColors] = useState(defaultColors);
   const [theme, setTheme] = useState('Sunset Bloom');
@@ -31,12 +31,27 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log(colors)
+
         const storedTodos = await AsyncStorage.getItem('todos');
+        console.log(storedTodos);
         const storedColors = await AsyncStorage.getItem('colors');
         const storedResolvedTodos = await AsyncStorage.getItem('resolvedTodos');
-        if (storedTodos) setTodos(JSON.parse(storedTodos));
-        if (storedColors) setColors(JSON.parse(storedColors));
+        const storedTheme = await AsyncStorage.getItem('theme');
+        if (storedTodos) {
+          const parsedTodos = JSON.parse(storedTodos);
+          const formattedTodos = parsedTodos.map(todo => ({
+            id: todo.id,
+            text: todo.text.text, // Adjust this if necessary
+            priority: todo.text.priority,
+            date: todo.text.date,
+          }));
+          setTodos(formattedTodos);
+        }
+        console.log(storedColors);
+        if (storedColors) setColors(colors);
         if (storedResolvedTodos) setResolvedTodos(JSON.parse(storedResolvedTodos));
+        if(storedTheme) setTheme(storedTheme);
       } catch (error) {
         console.error('Failed to load data:', error);
       }
@@ -45,31 +60,21 @@ export default function App() {
     loadData();
   }, []);
 
-  const addTodo = async (text) => {
-    const newTodo = { id: Date.now(), text };
+  const addTodo = async (text, priority) => {
+    const newTodo = { id: Date.now(), text: text, priority: priority, date: new Date().toISOString() }; // Ensure all properties are correct
     const updatedTodos = [...todos, newTodo];
     setTodos(updatedTodos);
     await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
   };
-
-  const unresolveTodo = async (id) => {
-    const todoToUnresolve = resolvedTodos.find((todo) => todo.id === id);
-    if (todoToUnresolve) {
-      const updatedTodos = [...todos, todoToUnresolve];
-      const updatedResolvedTodos = resolvedTodos.filter((todo) => todo.id !== id);
-      setTodos(updatedTodos);
-      setResolvedTodos(updatedResolvedTodos);
-      await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
-      await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
-    }
-  };
-
-  const deleteResolvedTodo = async (id) => {
-    const updatedResolvedTodos = resolvedTodos.filter((todo) => todo.id !== id);
-    setResolvedTodos(updatedResolvedTodos);
-    await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
-  };
-
+    
+  const updateThemeMode = async (theme, mode) => {
+    setTheme(theme);
+    setColors(mode[theme]);
+    console.log(colors)
+    console.log('Theme:', theme, 'Colors:', mode[theme]);
+    await AsyncStorage.setItem('theme', theme);
+    await AsyncStorage.setItem('colors', JSON.stringify(colors));
+  }
   const resolveTodo = async (id) => {
     const todoToResolve = todos.find((todo) => todo.id === id);
     if (todoToResolve) {
@@ -77,8 +82,9 @@ export default function App() {
       const updatedTodos = todos.filter((todo) => todo.id !== id);
       setResolvedTodos(updatedResolvedTodos);
       setTodos(updatedTodos);
-      await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
       await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
+      await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
+      showToast('Todo resolved!');
     }
   };
 
@@ -86,6 +92,7 @@ export default function App() {
     const updatedTodos = todos.filter((todo) => todo.id !== id);
     setTodos(updatedTodos);
     await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
+    showToast('Todo deleted!');
   };
 
   const showToast = (message) => {
@@ -93,17 +100,34 @@ export default function App() {
     setToastVisible(true);
     setTimeout(() => {
       setToastVisible(false);
+      setToastMessage('');
     }, 2000); // Hide toast after 2 seconds
   };
+
   const textColor = getTextColor(colors.background); // Get text color based on background
+
+  // Function to render tab icons
+  const renderTabIcon = (routeName) => {
+    let iconName;
+
+    if (routeName === 'Pending') {
+      iconName = 'md-list'; // Replace with the desired icon name
+    } else if (routeName === 'Resolved') {
+      iconName = 'md-checkmark-circle'; // Replace with the desired icon name
+    } else if (routeName === 'Settings') {
+      iconName = 'md-settings'; // Replace with the desired icon name
+    }
+
+    return <Ionicons name={iconName} size={24} color={textColor} />;
+  };
 
   return (
     <NavigationContainer>
-      <Tab.Navigator
+        <Tab.Navigator
         screenOptions={{
           tabBarStyle: { backgroundColor: colors.background },
           tabBarActiveTintColor: textColor,
-          tabBarInactiveTintColor: colors.ResolvedButtonBackground,
+          tabBarInactiveTintColor: colors.resolvedButtonBackground,
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.buttonBackground,
         }}
@@ -117,7 +141,7 @@ export default function App() {
               resolveTodo={resolveTodo} 
               deleteTodo={deleteTodo} 
               showToast={showToast} 
-              colors={colors} // Ensure colors are passed
+              colors={colors} 
             />
           )} 
           options={{
@@ -128,16 +152,33 @@ export default function App() {
         />
         <Tab.Screen 
           name="Resolved" 
-          children={() => <ResolvedScreen resolvedTodos={resolvedTodos} colors={colors} deleteTodo={deleteResolvedTodo} unresolveTodo={unresolveTodo} />} 
+          children={() => (
+            <ResolvedScreen
+              resolvedTodos={resolvedTodos}
+              deleteTodo={deleteTodo}
+              showToast={showToast}
+              colors={colors}
+            />
+          )} 
           options={{
             tabBarIcon: ({ color }) => (
               <Ionicons name="checkmark-done" size={24} color={color} />
             ),
           }}
         />
-        <Tab.Screen 
+         <Tab.Screen 
           name="Settings" 
-          children={() => <SettingsScreen setColors={setColors} colors = {colors} setTheme={setTheme} theme={theme} />} 
+          children={() => (
+            <SettingsScreen
+              setTheme={setTheme}
+              setColors={setColors}
+              colors={colors}
+              showToast={showToast}
+              theme={theme}
+              updateThemeMode={updateThemeMode}
+            />
+          )}
+         
           options={{
             tabBarIcon: ({ color }) => (
               <Ionicons name="settings" size={24} color={color} />
@@ -145,7 +186,7 @@ export default function App() {
           }}
         />
       </Tab.Navigator>
-      <CustomToast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
+      {toastVisible && <CustomToast message={toastMessage} />}
     </NavigationContainer>
   );
 }
