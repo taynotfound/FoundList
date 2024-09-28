@@ -6,4 +6,4 @@
 - [x] Resolved doesn't stay
 - [x] stay at the chosen theme instead, if possible
 - [x] Delete and unresolved button in resolved
-- [ ] Priorities
+- [x] Priorities
