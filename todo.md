@@ -5,3 +5,4 @@
 - [ ] Copyright
 - [ ] Add Link to latest Changelog
 - [ ] Add Space for Contributors
+- [ ] Fix readability on some Themes
