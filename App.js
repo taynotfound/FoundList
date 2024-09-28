@@ -32,6 +32,7 @@ export default function App() {
       try {
         const storedTodos = await AsyncStorage.getItem('todos');
         const storedColors = await AsyncStorage.getItem('colors');
+        const storedResolvedTodos = await AsyncStorage.getItem('resolvedTodos');
         if (storedTodos) setTodos(JSON.parse(storedTodos));
         if (storedColors) setColors(JSON.parse(storedColors));
       } catch (error) {
@@ -57,6 +58,7 @@ export default function App() {
       setResolvedTodos(updatedResolvedTodos);
       setTodos(updatedTodos);
       await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
+      await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
     }
   };
 
