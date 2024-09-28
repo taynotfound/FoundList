@@ -1,17 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button, TouchableOpacity } from 'react-native';
 import { getTextColor } from './colorUtils'; // Import the utility function
 import { Swipeable } from 'react-native-gesture-handler'; // Import Swipeable
 import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Import GestureHandlerRootView
 import Icon from 'react-native-vector-icons/Ionicons'; // Import Ionicons
+import { Picker } from '@react-native-picker/picker';
 
 const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, colors }) => {
   const [newTodo, setNewTodo] = useState('');
+  const [priority, setPriority] = useState('Medium'); // State to store selected priority
+
+  useEffect(() => {
+    // Sort todos by priority: High, Medium, Low
+    todos.sort((a, b) => {
+      const priorityOrder = { 'High': 1, 'Medium': 2, 'Low': 3 };
+      return priorityOrder[a.priority || 'Low'] - priorityOrder[b.priority || 'Low'];
+    });
+  }, [todos]);
 
   const handleAddTodo = () => {
     if (newTodo.trim()) {
-      addTodo(newTodo);
+      addTodo(newTodo, priority); // Pass the priority along with the task
       setNewTodo('');
+      setPriority('Medium'); // Reset priority to default
       showToast('Todo added!');
     }
   };
@@ -26,7 +37,7 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
         </View>
       </TouchableOpacity>
     );
-
+  
     const renderLeftActions = () => (
       <TouchableOpacity onPress={() => resolveTodo(item.id)} style={[styles.actionButton, { marginVertical: 5 }]}>
         <View style={[styles.swipeButton, { backgroundColor: '#4CD964' }]}>
@@ -34,17 +45,38 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
         </View>
       </TouchableOpacity>
     );
-
+  
     return (
       <Swipeable
         renderRightActions={renderRightActions}
         renderLeftActions={renderLeftActions}
       >
         <View style={[styles.todoItem, { backgroundColor: colors.todoBackground }]}>
-          <Text style={[styles.todoText, { color: textColor }]}>{item.text}</Text>
+          <Text style={[styles.todoText, { color: textColor }]}>
+            {item.text}
+            <Text style={[styles.priorityText, { color: getPriorityColor(item.priority) }]}>
+              {' '}({item.priority || 'Low'})
+            </Text>
+          </Text>
+          {item.date && ( // Render date if it exists
+            <Text style={[styles.dateText, { color: textColor }]}>
+              {new Date(item.date).toLocaleDateString()}
+            </Text>
+          )}
         </View>
       </Swipeable>
     );
+  };
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'High':
+        return '#FF3B30'; // Red for high priority
+      case 'Medium':
+        return '#FF9500'; // Orange for medium priority
+      case 'Low':
+      default:
+        return '#4CD964'; // Green for low priority or undefined
+    }
   };
 
   return (
@@ -56,7 +88,19 @@ const PendingScreen = ({ todos, addTodo, resolveTodo, deleteTodo, showToast, col
           value={newTodo}
           onChangeText={setNewTodo}
         />
+
+        <Picker
+          selectedValue={priority}
+          style={[styles.picker, { color: textColor }]}
+          onValueChange={(itemValue) => setPriority(itemValue)}
+        >
+          <Picker.Item label="High" value="High" />
+          <Picker.Item label="Medium" value="Medium" />
+          <Picker.Item label="Low" value="Low" />
+        </Picker>
+
         <Button title="Add Todo" onPress={handleAddTodo} color={colors.buttonBackground} />
+
         <FlatList
           data={todos}
           keyExtractor={(item) => item.id.toString()}
@@ -81,20 +125,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 16,
   },
+  picker: {
+    height: 50,
+    width: '100%',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+  },
   todoItem: {
     marginVertical: 20,
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderRadius: 5,
     marginBottom: 5,
   },
   todoText: {
     fontSize: 16,
     flex: 1,
+  },
+  priorityText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#999', // Gray for date text
   },
   actionButton: {
     justifyContent: 'center',
