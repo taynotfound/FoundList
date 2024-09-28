@@ -117,7 +117,7 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
     setColors(themeOptions[themeKey]);
     setSelectedTheme(themeKey);
     setTheme(themeKey);
-    updateThemeMode(themeOptions[themeKey], themeOptions);
+    updateThemeMode(themeOptions[themeKey], themeOptions, lightTheme, darkTheme);
     };
 
   // Utility function to dynamically set text width based on length

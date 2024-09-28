@@ -67,13 +67,12 @@ export default function App() {
     await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
   };
     
-  const updateThemeMode = async (theme, mode) => {
-    setTheme(theme);
-    setColors(mode[theme]);
-    console.log(colors)
-    console.log('Theme:', theme, 'Colors:', mode[theme]);
-    await AsyncStorage.setItem('theme', theme);
-    await AsyncStorage.setItem('colors', JSON.stringify(colors));
+  const updateThemeMode = async (theme, mode, lightTheme, darkTheme) => {
+    /*const updatedColors = mode === 'light' ? lightTheme[theme] : darkTheme[theme];
+    setColors(updatedColors);
+    await AsyncStorage.setItem('colors', JSON.stringify(updatedColors));
+    await AsyncStorage.setItem('theme', theme);*/
+    return
   }
   const resolveTodo = async (id) => {
     const todoToResolve = todos.find((todo) => todo.id === id);
