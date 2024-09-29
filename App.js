@@ -30,6 +30,8 @@ export default function App() {
   const [theme, setTheme] = useState('Sunset Bloom');
   const [isLightMode, setIsLightMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGuideVisible, setIsGuideVisible] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -62,7 +64,11 @@ export default function App() {
         if (storedTheme) setTheme(storedTheme);
         if (storedMode !== null) setIsLightMode(storedMode === 'true');
 
-        setTimeout(() => setIsLoading(false), 300);
+        setTimeout(() => {
+          setIsLoading(false);
+          
+        }, 300);
+      
       } catch (error) {
         console.error('Failed to load data:', error);
         setIsLoading(false);
@@ -71,6 +77,27 @@ export default function App() {
 
     loadData();
   }, []);
+
+  const updateThemeMode = async (newTheme, mode) => {
+    const updatedColors = mode === 'light' ? lightTheme[newTheme] : darkTheme[newTheme];
+    setColors(updatedColors);
+    setTheme(newTheme);
+    setIsLightMode(mode === 'light');
+    
+    // Save the updated theme and mode to AsyncStorage
+    await AsyncStorage.setItem('colors', JSON.stringify(updatedColors));
+    await AsyncStorage.setItem('theme', newTheme);
+    await AsyncStorage.setItem('isLightMode', mode === 'light' ? 'true' : 'false');
+  };
+  
+
+  const openGuide = () => {
+    setIsGuideVisible(true);
+  };
+
+  const closeGuide = () => {
+    setIsGuideVisible(false);
+  };
 
   const addTodo = async (text, priority) => {
     const newTodo = { id: Date.now(), text, priority, date: new Date().toISOString() };
@@ -161,14 +188,16 @@ export default function App() {
         />
         <Tab.Screen 
           name="Settings" 
-          children={() => (
+          children={(props) => (
             <SettingsScreen
+            {...props}
               setTheme={setTheme}
               setColors={setColors}
               colors={colors}
               showToast={showToast}
               theme={theme}
               isLightMode={isLightMode}
+              openGuide={openGuide}
               updateThemeMode={updateThemeMode}
             />
           )}

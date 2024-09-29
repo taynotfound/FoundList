@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getTextColor } from './colorUtils';
-
-const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode }) => {
+import { getTextColor, getLighterColor } from './colorUtils';
+import { Button } from 'react-native';
+const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode, openGuide, navigation }) => {
   const [isLightMode, setIsLightMode] = useState(false);
   const textColor = getTextColor(colors.background);
-
+  const guideBackgroundColor = getLighterColor(colors.background);
   const lightTheme = {
     sunsetBloom: {
       background: '#E8F1C0',
@@ -159,7 +159,18 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
               )}
             </TouchableOpacity>
           ))}
-        </View>
+</View>
+<View style={styles.horizontalSeparatorThicc} />
+<Text style={[styles.title, { color: textColor }]}>Guide</Text>
+
+<View style={[styles.guideContainer, {backgroundColor: colors.guideBackgroundColor}]}>
+<Text style={[styles.iconLabel, { color: textColor }]}>Hello and Welcome to FoundList!</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>This App is pretty straight forward.</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>Add a To Do to the List by navigating to the Pending Tab and typing your To Do and then pressing "Add ToDo"</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>Once you have completed a To Do, you can swipe right on the To Do to mark it as completed.</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>If you have completed a To Do by mistake, you can swipe left on the To Do to unmark it as completed.</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>If you would like to delete a To Do, you can swipe right on the To Do and then press the trash can icon.</Text>
+</View>
       </View>
     </ScrollView>
   );
@@ -168,6 +179,20 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
+  },
+  guideContainer: {
+    borderRadius: 10,
+    padding: 20,
+    marginVertical: 20,
+    elevation: 3, // Add shadow for elevation on Android
+    shadowColor: '#000', // Shadow properties for iOS
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    width: '100%', // Full width for better visibility
   },
   container: {
     flex: 1,
@@ -188,6 +213,12 @@ const styles = StyleSheet.create({
   horizontalSeparator: {
     width: '100%',
     height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 20,
+  },
+  horizontalSeparatorThicc: {
+    width: '100%',
+    height: 5,
     backgroundColor: '#ddd',
     marginVertical: 20,
   },

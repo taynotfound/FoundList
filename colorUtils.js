@@ -14,3 +14,12 @@ export const isDarkBackground = (color) => {
   export const getInputBackgroundColor = (backgroundColor) => {
     return isDarkBackground(backgroundColor) ? '#333' : '#fff';
   };
+
+
+  export const getLighterColor = (color) => {
+    const hex = color.replace('#', '');
+    const r = Math.min(255, parseInt(hex.slice(0, 2), 16) + 20);
+    const g = Math.min(255, parseInt(hex.slice(2, 4), 16) + 20);
+    const b = Math.min(255, parseInt(hex.slice(4, 6), 16) + 20);
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
