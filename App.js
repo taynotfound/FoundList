@@ -187,7 +187,7 @@ export default function App() {
           }}
         />
         <Tab.Screen 
-          name="Settings" 
+          name="Settings & Info" 
           children={(props) => (
             <SettingsScreen
             {...props}
