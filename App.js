@@ -36,6 +36,7 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoading(true);
         const storedTodos = await AsyncStorage.getItem('todos');
         const storedResolvedTodos = await AsyncStorage.getItem('resolvedTodos');
         const storedColors = await AsyncStorage.getItem('colors');
