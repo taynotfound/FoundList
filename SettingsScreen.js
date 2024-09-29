@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getTextColor, getLighterColor } from './colorUtils';
 import { Button } from 'react-native';
@@ -171,6 +171,36 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode, o
 <Text style={[styles.iconLabel, { color: textColor }]}>If you have completed a To Do by mistake, you can swipe left on the To Do to unmark it as completed.</Text>
 <Text style={[styles.iconLabel, { color: textColor }]}>If you would like to delete a To Do, you can swipe right on the To Do and then press the trash can icon.</Text>
 </View>
+
+      </View>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.horizontalSeparatorThicc} />
+      <Text style={[styles.title, { color: textColor }]}>Contributors</Text>
+      <TouchableOpacity onPress={() => Linking.openURL('https://taymaerz.de')}>
+      <Text style={[styles.iconLabel, styles.link, { color: textColor }]}>Tay März - Core Developer</Text>
+      </TouchableOpacity>
+          <View style={styles.horizontalSeparator} />
+          <Text style={[styles.iconLabel, { color: textColor }]}>You? Contribute now to be listed here</Text>
+          <View style={styles.horizontalSeparatorThicc} />
+
+      <Text style={[styles.title, { color: textColor }]}>Links</Text>
+
+      <TouchableOpacity onPress={() => Linking.openURL('https://github.com/taynotfound/FoundList/')}>
+          <Text style={[styles.link, { color: textColor }]}>FoundList GitHub Repository</Text>
+          </TouchableOpacity>
+          <View style={styles.horizontalSeparator} />
+          <TouchableOpacity onPress={() => Linking.openURL('https://github.com/taynotfound/FoundList/releases')}>
+          <Text style={[styles.link, { color: textColor }]}>Latest Release & Change Logs</Text>
+          </TouchableOpacity>
+
+          <View style={styles.horizontalSeparatorThicc} />
+          <Text style={[styles.title, { color: textColor }]}>Support</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://discord.gg/C2bAXnYXzm')}>
+          <Text style={[styles.link, { color: textColor }]}>Join the Discord</Text>
+          </TouchableOpacity>
+
+          <View style={styles.horizontalSeparatorThicc} />
+          <Text style={[styles.iconLabel, { color: textColor }]}>© 2024 - Tay März under TayLabs</Text>
       </View>
     </ScrollView>
   );
@@ -180,6 +210,10 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
   },
+  link: {
+        color: 'blue',
+        textDecorationLine: 'underline',
+    },
   guideContainer: {
     borderRadius: 10,
     padding: 20,

@@ -2,9 +2,9 @@
 
 
 - [ ] Toasts for more Actions
-- [ ] Copyright
-- [ ] Add Link to latest Changelog
-- [ ] Add Space for Contributors
+- [x] Copyright
+- [x] Add Link to latest Changelog
+- [x] Add Space for Contributors
 - [x] Fix readability on some Themes
 - [x] Add Initial Open Popup with "Guide" that can be accessed at any time
 - [x] It defaulted to first theme in dark Ocean, doesn't display as defaulted to the first theme [Video](https://github.com/user-attachments/assets/2e5242bb-e3c0-47d7-98c8-163309c40bd0)
