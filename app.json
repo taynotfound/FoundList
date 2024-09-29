@@ -20,7 +20,9 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#153238"
       },
-      "package": "de.taymaerz.foundlist"
+      "package": "de.taymaerz.foundlist"y
+      "minSdkVersion": 29,
+      "targetSdkVersion": 29
     },
     "web": {
       "favicon": "./assets/icon.png"
