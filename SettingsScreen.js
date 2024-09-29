@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getTextColor } from './colorUtils';
 
-
 const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode }) => {
-  const [isLightMode, setIsLightMode] = useState(false); // Default to Dark mode
-  const [selectedTheme, setSelectedTheme] = useState('sunsetBloom'); // Default to Dark Default
+  const [isLightMode, setIsLightMode] = useState(false);
   const textColor = getTextColor(colors.background);
 
   const lightTheme = {
@@ -39,11 +37,11 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
       resolvedButtonBackground: '#88C0D0',
     },
     cattuccino: {
-      background: '#F8E1D4', // Softer pastel background
-      inputBackground: '#F5C3B3', // Lighter input background
-      buttonBackground: '#D6A07C', // Soft beige button background
-      todoBackground: '#D5C4A1', // Warm beige for todo items
-      resolvedButtonBackground: '#F3E2D5', // Light pinkish for resolved
+      background: '#F8E1D4',
+      inputBackground: '#F5C3B3',
+      buttonBackground: '#D6A07C',
+      todoBackground: '#D5C4A1',
+      resolvedButtonBackground: '#F3E2D5',
     },
     mintyFresh: {
       background: '#98FF98',
@@ -99,58 +97,38 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
     },
   };
 
-
+  const themeOptions = isLightMode ? lightTheme : darkTheme;
 
   const toggleThemeMode = (lightMode) => {
     setIsLightMode(lightMode);
-    const defaultTheme = lightMode ? lightTheme.sunsetBloom : darkTheme.sunsetBloom;
+    const themeKey = theme || 'sunsetBloom'; // Preserve the selected theme
+    const defaultTheme = lightMode ? lightTheme[themeKey] : darkTheme[themeKey]; // Use the selected theme
     setColors(defaultTheme);
-    setSelectedTheme(theme);
-    setTheme(theme);
+    setTheme(themeKey);
+    updateThemeMode(themeKey, lightMode ? 'light' : 'dark', lightTheme, darkTheme);
   };
 
-  const themeOptions = isLightMode ? lightTheme : darkTheme;
-
   const selectTheme = (themeKey) => {
-    console.log('Selected theme:', themeKey);
-    console.log('Colors:', themeOptions[themeKey]);
     setColors(themeOptions[themeKey]);
-    setSelectedTheme(themeKey);
     setTheme(themeKey);
-    updateThemeMode(themeOptions[themeKey], themeOptions, lightTheme, darkTheme);
-    };
-
-  // Utility function to dynamically set text width based on length
-  const getTextWidthStyle = (themeKey) => {
-    const themeNameLength = themeKey.length;
-    if (themeNameLength <= 3) {
-      return { width: 60 }; // Short names have a fixed small width
-    } else if (themeNameLength <= 10) {
-      return { width: 100 }; // Medium names get a bit more space
-    } else {
-      return { width: 140 }; // Longer names get more width
-    }
+    updateThemeMode(themeKey, isLightMode ? 'light' : 'dark', lightTheme, darkTheme);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Text style={[styles.title, { color: textColor }]}>Display</Text>
-
         <View style={styles.iconContainer}>
           <TouchableOpacity onPress={() => toggleThemeMode(true)} style={styles.iconButton}>
             <Ionicons name="sunny" size={50} color={isLightMode ? '#FFD700' : '#000'} />
             <Text style={[styles.iconLabel, { color: textColor }]}>Light Mode</Text>
           </TouchableOpacity>
-
           <TouchableOpacity onPress={() => toggleThemeMode(false)} style={styles.iconButton}>
             <Ionicons name="moon" size={50} color={!isLightMode ? '#6a0dad' : '#fff'} />
             <Text style={[styles.iconLabel, { color: textColor }]}>Dark Mode</Text>
           </TouchableOpacity>
         </View>
-
         <View style={styles.horizontalSeparator} />
-
         <View style={styles.themeButtonContainer}>
           {Object.keys(themeOptions).map((themeKey, index) => (
             <TouchableOpacity
@@ -163,12 +141,7 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
                 size={50}
                 color={themeOptions[themeKey].buttonBackground}
               />
-              <Text
-                style={[
-                  styles.iconLabel,
-                  { color: textColor, ...getTextWidthStyle(themeKey) },
-                ]}
-              >
+              <Text style={[styles.iconLabel, { color: textColor }]}>
                 {themeKey === 'sunsetBloom'
                   ? 'Sunset Bloom'
                   : themeKey === 'grapeSoda'
@@ -181,8 +154,8 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode })
                   ? 'Cattuccino'
                   : 'Minty Fresh'}
               </Text>
-              {selectedTheme === themeKey && (
-                <Ionicons name="checkmark-circle" size={20} color="green" style={styles.selectedIcon} />
+              {theme === themeKey && (
+                <Ionicons name="checkmark-circle" size={20} color="green" />
               )}
             </TouchableOpacity>
           ))}
@@ -235,10 +208,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 15,
     textAlign: 'center',
-    flexWrap: 'wrap', // Allow text to wrap if it's too long
-  },
-  selectedIcon: {
-    marginTop: 5,
+    flexWrap: 'wrap',
   },
 });
 

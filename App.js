@@ -68,11 +68,10 @@ export default function App() {
   };
     
   const updateThemeMode = async (theme, mode, lightTheme, darkTheme) => {
-    /*const updatedColors = mode === 'light' ? lightTheme[theme] : darkTheme[theme];
+    const updatedColors = mode === 'light' ? lightTheme[theme] : darkTheme[theme];
     setColors(updatedColors);
     await AsyncStorage.setItem('colors', JSON.stringify(updatedColors));
-    await AsyncStorage.setItem('theme', theme);*/
-    return
+    await AsyncStorage.setItem('theme', theme);
   }
   const resolveTodo = async (id) => {
     const todoToResolve = todos.find((todo) => todo.id === id);
