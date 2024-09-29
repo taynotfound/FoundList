@@ -1,7 +1,7 @@
 # To Do for new Update
 
 
-- [ ] Toasts for more Actions
+- [ ] Toasts for more Actions [Temporarily Disabled]
 - [x] Copyright
 - [x] Add Link to latest Changelog
 - [x] Add Space for Contributors

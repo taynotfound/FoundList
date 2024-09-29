@@ -51,7 +51,7 @@ export default function App() {
           const parsedResolvedTodos = JSON.parse(storedResolvedTodos);
           setResolvedTodos(parsedResolvedTodos);
         }
-
+        showToast("Loaded todos!");
         if (storedColors) {
           setColors(JSON.parse(storedColors));
         } else {
@@ -63,9 +63,10 @@ export default function App() {
 
         if (storedTheme) setTheme(storedTheme);
         if (storedMode !== null) setIsLightMode(storedMode === 'true');
-
+        showToast("Loaded colors!");
         setTimeout(() => {
           setIsLoading(false);
+          showToast("Finished loading!");
           
         }, 300);
       
@@ -88,6 +89,7 @@ export default function App() {
     await AsyncStorage.setItem('colors', JSON.stringify(updatedColors));
     await AsyncStorage.setItem('theme', newTheme);
     await AsyncStorage.setItem('isLightMode', mode === 'light' ? 'true' : 'false');
+    showToast('Theme updated to ' + newTheme);
   };
   
 

@@ -5,7 +5,7 @@ import { Swipeable } from 'react-native-gesture-handler'; // Import Swipeable fo
 import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Import GestureHandlerRootView
 import Icon from 'react-native-vector-icons/Ionicons'; // Import Ionicons for icons
 
-const ResolvedScreen = ({ resolvedTodos, unresolveTodo, deleteTodo, colors }) => {
+const ResolvedScreen = ({ resolvedTodos, unresolveTodo, deleteTodo, colors, showToast }) => {
   const textColor = getTextColor(colors.background); // Get text color based on background
 
   const renderItem = ({ item }) => {
