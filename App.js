@@ -9,7 +9,7 @@ import PendingScreen from './PendingScreen';
 import CustomToast from './CustomToast';
 import { getTextColor } from './colorUtils';
 import { lightTheme, darkTheme } from './themes';
-import LoadingScreen from './LoadingScreen'; // Import the LoadingScreen component
+import LoadingScreen from './LoadingScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -29,41 +29,43 @@ export default function App() {
   const [colors, setColors] = useState(defaultColors);
   const [theme, setTheme] = useState('Sunset Bloom');
   const [isLightMode, setIsLightMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Manage loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const storedTodos = await AsyncStorage.getItem('todos');
-        const storedColors = await AsyncStorage.getItem('colors');
         const storedResolvedTodos = await AsyncStorage.getItem('resolvedTodos');
+        const storedColors = await AsyncStorage.getItem('colors');
         const storedTheme = await AsyncStorage.getItem('theme');
         const storedMode = await AsyncStorage.getItem('isLightMode');
 
         if (storedTodos) {
           const parsedTodos = JSON.parse(storedTodos);
-          const formattedTodos = parsedTodos.map(todo => ({
-            id: todo.id,
-            text: todo.text.text,
-            priority: todo.text.priority,
-            date: todo.text.date,
-          }));
-          setTodos(formattedTodos);
+          setTodos(parsedTodos);
+        }
+
+        if (storedResolvedTodos) {
+          const parsedResolvedTodos = JSON.parse(storedResolvedTodos);
+          setResolvedTodos(parsedResolvedTodos);
+        }
+
+        if (storedColors) {
+          setColors(JSON.parse(storedColors));
+        } else {
+          const selectedColors = (storedMode === 'true')
+            ? lightTheme[storedTheme || 'Sunset Bloom']
+            : darkTheme[storedTheme || 'Sunset Bloom'];
+          setColors(selectedColors);
         }
 
         if (storedTheme) setTheme(storedTheme);
         if (storedMode !== null) setIsLightMode(storedMode === 'true');
 
-        const selectedColors = (storedMode === 'true')
-          ? lightTheme[storedTheme || 'Sunset Bloom']
-          : darkTheme[storedTheme || 'Sunset Bloom'];
-
-        setColors(storedColors ? JSON.parse(storedColors) : selectedColors);
-        if (storedResolvedTodos) setResolvedTodos(JSON.parse(storedResolvedTodos));
-        setTimeout(() => setIsLoading(false), 300); // Set loading to false after 1 second
+        setTimeout(() => setIsLoading(false), 300);
       } catch (error) {
         console.error('Failed to load data:', error);
-        setIsLoading(false); // Even if there’s an error, we need to stop loading
+        setIsLoading(false);
       }
     };
 
@@ -71,40 +73,11 @@ export default function App() {
   }, []);
 
   const addTodo = async (text, priority) => {
-    const newTodo = { id: Date.now(), text: text, priority: priority, date: new Date().toISOString() };
+    const newTodo = { id: Date.now(), text, priority, date: new Date().toISOString() };
     const updatedTodos = [...todos, newTodo];
     setTodos(updatedTodos);
     await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
   };
-
-  const updateThemeMode = async (newTheme, mode) => {
-    const updatedColors = mode === 'light' ? lightTheme[newTheme] : darkTheme[newTheme];
-    setColors(updatedColors);
-    setTheme(newTheme);
-    setIsLightMode(mode === 'light');
-    await AsyncStorage.setItem('colors', JSON.stringify(updatedColors));
-    await AsyncStorage.setItem('theme', newTheme);
-    await AsyncStorage.setItem('isLightMode', mode === 'light' ? 'true' : 'false');
-  };
-
-  const unresolveTodo = async (id) => {
-    const todoToUnresolve = resolvedTodos.find((todo) => todo.id === id);
-    if (todoToUnresolve) {
-      // Remove from resolvedTodos and add back to todos
-      const updatedResolvedTodos = resolvedTodos.filter((todo) => todo.id !== id);
-      const updatedTodos = [...todos, todoToUnresolve];
-      
-      setResolvedTodos(updatedResolvedTodos);
-      setTodos(updatedTodos);
-      
-      // Update AsyncStorage
-      await AsyncStorage.setItem('resolvedTodos', JSON.stringify(updatedResolvedTodos));
-      await AsyncStorage.setItem('todos', JSON.stringify(updatedTodos));
-      
-      showToast('Todo moved back to pending!');
-    }
-  };
-  
 
   const resolveTodo = async (id) => {
     const todoToResolve = todos.find((todo) => todo.id === id);
@@ -138,7 +111,7 @@ export default function App() {
   const textColor = getTextColor(colors.background);
 
   if (isLoading) {
-    return <LoadingScreen colors={colors} />; // Show loading screen while initializing
+    return <LoadingScreen colors={colors} />;
   }
 
   return (
@@ -178,7 +151,6 @@ export default function App() {
               deleteTodo={deleteTodo}
               showToast={showToast}
               colors={colors}
-              unresolveTodo={unresolveTodo}
             />
           )}
           options={{
@@ -196,8 +168,8 @@ export default function App() {
               colors={colors}
               showToast={showToast}
               theme={theme}
-              updateThemeMode={updateThemeMode}
               isLightMode={isLightMode}
+              updateThemeMode={updateThemeMode}
             />
           )}
           options={{

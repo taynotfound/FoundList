@@ -11,7 +11,7 @@
 - [x] If you have any theme chosen when you're in dark and press the dark icon again, it defaults to sunset and on Light too
 - [x] .... let's just say a load of issues with themes. doesn't retain after reopening 
 - [x] Reverting tabs crashes the App and fucks over the rest of the pending tasks
-- [ ] Tasks with any priority level don't stay when you close the app and open it again
+- [x] Tasks with any priority level don't stay when you close the app and open it again
 
 
 
