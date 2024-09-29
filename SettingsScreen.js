@@ -167,9 +167,9 @@ const SettingsScreen = ({ setColors, colors, setTheme, theme, updateThemeMode, o
 <Text style={[styles.iconLabel, { color: textColor }]}>Hello and Welcome to FoundList!</Text>
 <Text style={[styles.iconLabel, { color: textColor }]}>This App is pretty straight forward.</Text>
 <Text style={[styles.iconLabel, { color: textColor }]}>Add a To Do to the List by navigating to the Pending Tab and typing your To Do and then pressing "Add ToDo"</Text>
-<Text style={[styles.iconLabel, { color: textColor }]}>Once you have completed a To Do, you can swipe right on the To Do to mark it as completed.</Text>
-<Text style={[styles.iconLabel, { color: textColor }]}>If you have completed a To Do by mistake, you can swipe left on the To Do to unmark it as completed.</Text>
-<Text style={[styles.iconLabel, { color: textColor }]}>If you would like to delete a To Do, you can swipe right on the To Do and then press the trash can icon.</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>Once you have completed a To Do, you can swipe left on the To Do to mark it as completed.</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>If you have completed a To Do by mistake, you can swipe right on the To Do to unmark it as completed.</Text>
+<Text style={[styles.iconLabel, { color: textColor }]}>If you would like to delete a To Do, you can swipe left on the To Do and then press the trash can icon.</Text>
 </View>
 
       </View>
