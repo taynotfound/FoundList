@@ -36,6 +36,7 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setColors(defaultColors);
         setIsLoading(true);
         const storedTodos = await AsyncStorage.getItem('todos');
         const storedResolvedTodos = await AsyncStorage.getItem('resolvedTodos');
@@ -73,7 +74,15 @@ export default function App() {
       
       } catch (error) {
         console.error('Failed to load data:', error);
-        setIsLoading(false);
+        return () => {
+          setIsLoading(false);
+          <View>
+            <Text>Failed to load data</Text>
+            <Text>{error}</Text>
+          </View>
+          
+        };
+
       }
     };
 
