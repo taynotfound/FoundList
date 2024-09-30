@@ -69,7 +69,14 @@ export default function App() {
         setTimeout(() => {
           setIsLoading(false);
           showToast("Finished loading!");
-          
+          <PendingScreen 
+            todos={todos} 
+            addTodo={addTodo} 
+            resolveTodo={resolveTodo} 
+            deleteTodo={deleteTodo} 
+            showToast={showToast} 
+            colors={colors}
+          />
         }, 300);
       
       } catch (error) {

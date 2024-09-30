@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
-const LoadingScreen = ({ colors }) => {
+const LoadingScreen = () => {
   return (
-    <View style={[styles.container, { backgroundColor: colors.background || '#153238' }]}>
-      <ActivityIndicator size="large" color={colors.buttonBackground || '#b38a58'} />
-      <Text style={[styles.text, { color: colors.inputBackground || '#fff' }]}>Loading Components...</Text>
+    <View style={[styles.container, { backgroundColor: '#153238' }]}>
+      <ActivityIndicator size="large" color={'#b38a58'} />
+      <Text style={[styles.text, { color: '#fff' }]}>Loading Components...</Text>
     </View>
   );
 };
