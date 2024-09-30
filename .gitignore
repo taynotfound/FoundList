@@ -9,6 +9,7 @@ dist/
 web-build/
 .idea/
 android/
+ios/
 # Native
 *.orig.*
 *.jks
