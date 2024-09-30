@@ -1,3 +1,5 @@
+> [!CAUTION]
+> Do **NOT** install the current version. The Update is broken!
 # FoundList <img src="https://us-east-1.tixte.net/uploads/tay.needs.rest/adaptive-icon.png" alt="App Icon" width="50" height="50"> 
 [![wakatime](https://wakatime.com/badge/user/c79782f6-783d-42c2-aa21-a35d975705b5/project/c150a817-2cbe-4d94-8633-fd80a80485ae.svg)](https://wakatime.com/badge/user/c79782f6-783d-42c2-aa21-a35d975705b5/project/c150a817-2cbe-4d94-8633-fd80a80485ae)
 
