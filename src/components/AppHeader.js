@@ -11,11 +11,13 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { useTodos } from '../contexts/TodoContext';
+import { useGamification } from '../contexts/GamificationContext';
 import { createFloatingAnimation, createFadeInAnimation } from '../utils/animations';
 
-const AppHeader = ({ title, showStats = false }) => {
+const AppHeader = ({ title, showStats = false, showLevel = false }) => {
   const { theme } = useTheme();
   const { todos, completedTodos } = useTodos();
+  const { stats: gamificationStats, getCurrentLevel } = useGamification();
   
   // Animation refs
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -82,42 +84,57 @@ const AppHeader = ({ title, showStats = false }) => {
           </View>
         </View>
 
-        {showStats && (
+        {(showStats || showLevel) && (
           <Animated.View 
             style={[
               styles.statsContainer,
               { transform: [{ translateY: floatAnim }] }
             ]}
           >
-            <View style={[styles.statItem, { backgroundColor: theme.colors.surface }]}>
-              <Text style={[styles.statNumber, { color: theme.colors.accent }]}>
-                {stats.totalActive}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Active
-              </Text>
-            </View>
-
-            {stats.todayCompleted > 0 && (
-              <View style={[styles.statItem, { backgroundColor: theme.colors.success + '20' }]}>
-                <Text style={[styles.statNumber, { color: theme.colors.success }]}>
-                  {stats.todayCompleted}
+            {showLevel && gamificationStats && (
+              <View style={[styles.levelBadge, { backgroundColor: getCurrentLevel(gamificationStats.totalPoints).color + '20' }]}>
+                <Text style={[styles.levelNumber, { color: getCurrentLevel(gamificationStats.totalPoints).color }]}>
+                  {gamificationStats.level}
                 </Text>
-                <Text style={[styles.statLabel, { color: theme.colors.success }]}>
-                  Done today
+                <Text style={[styles.levelLabel, { color: getCurrentLevel(gamificationStats.totalPoints).color }]}>
+                  {getCurrentLevel(gamificationStats.totalPoints).title}
                 </Text>
               </View>
             )}
 
-            {stats.overdue > 0 && (
-              <Animated.View style={[styles.statItem, { backgroundColor: theme.colors.destructive + '20' }]}>
-                <Text style={[styles.statNumber, { color: theme.colors.destructive }]}>
-                  {stats.overdue}
-                </Text>
-                <Text style={[styles.statLabel, { color: theme.colors.destructive }]}>
-                  Overdue
-                </Text>
-              </Animated.View>
+            {showStats && (
+              <>
+                <View style={[styles.statItem, { backgroundColor: theme.colors.surface }]}>
+                  <Text style={[styles.statNumber, { color: theme.colors.accent }]}>
+                    {stats.totalActive}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                    Active
+                  </Text>
+                </View>
+
+                {stats.todayCompleted > 0 && (
+                  <View style={[styles.statItem, { backgroundColor: theme.colors.success + '20' }]}>
+                    <Text style={[styles.statNumber, { color: theme.colors.success }]}>
+                      {stats.todayCompleted}
+                    </Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.success }]}>
+                      Done today
+                    </Text>
+                  </View>
+                )}
+
+                {stats.overdue > 0 && (
+                  <Animated.View style={[styles.statItem, { backgroundColor: theme.colors.destructive + '20' }]}>
+                    <Text style={[styles.statNumber, { color: theme.colors.destructive }]}>
+                      {stats.overdue}
+                    </Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.destructive }]}>
+                      Overdue
+                    </Text>
+                  </Animated.View>
+                )}
+              </>
             )}
           </Animated.View>
         )}
@@ -184,6 +201,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  levelBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  levelNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  levelLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: -2,
   },
 });
 

@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { useTodos } from '../contexts/TodoContext';
@@ -27,6 +26,10 @@ import CategoryStats from '../components/CategoryStats';
 import { SortButton } from '../components/SortMenu';
 import TodoImagePicker from '../components/ImagePicker';
 import SearchBar from '../components/SearchBar';
+import MarkdownEditorViewer from '../components/MarkdownEditorViewer';
+import CustomDateTimePicker from '../components/DateTimePicker';
+import RecurrenceSelector from '../components/RecurrenceSelector';
+import SmartSuggestions from '../components/SmartSuggestions';
 
 const CurrentTodosScreen = () => {
   const { theme } = useTheme();
@@ -43,8 +46,8 @@ const CurrentTodosScreen = () => {
     category: null,
     tags: [],
     images: [],
+    recurrence: { type: 'none', interval: 1, weekdays: [], endDate: null },
   });
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Filter todos based on search query
@@ -73,8 +76,28 @@ const CurrentTodosScreen = () => {
 
     setIsLoading(true);
     try {
-      await addTodo(newTodo.title, newTodo.shortDesc, newTodo.longDesc, newTodo.dueDate, newTodo.priority, newTodo.category, newTodo.tags, newTodo.images);
-      setNewTodo({ title: '', shortDesc: '', longDesc: '', dueDate: null, priority: 'medium', category: null, tags: [], images: [] });
+      await addTodo(
+        newTodo.title, 
+        newTodo.shortDesc, 
+        newTodo.longDesc, 
+        newTodo.dueDate, 
+        newTodo.priority, 
+        newTodo.category, 
+        newTodo.tags, 
+        newTodo.images, 
+        newTodo.recurrence
+      );
+      setNewTodo({ 
+        title: '', 
+        shortDesc: '', 
+        longDesc: '', 
+        dueDate: null, 
+        priority: 'medium', 
+        category: null, 
+        tags: [], 
+        images: [],
+        recurrence: { type: 'none', interval: 1, weekdays: [], endDate: null }
+      });
       setShowAddModal(false);
     } catch (error) {
       Alert.alert('Error', 'Failed to add todo. Please try again.');
@@ -214,6 +237,7 @@ const CurrentTodosScreen = () => {
             scrollIndicatorInsets={{ right: 2 }}
             contentContainerStyle={styles.modalScrollContent}
           >
+            {/* Title */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
                 Title *
@@ -232,9 +256,11 @@ const CurrentTodosScreen = () => {
                 placeholder="Enter todo title"
                 placeholderTextColor={theme.colors.textSecondary}
                 maxLength={100}
+                autoFocus
               />
             </View>
 
+            {/* Short Description */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
                 Short Description
@@ -256,34 +282,81 @@ const CurrentTodosScreen = () => {
               />
             </View>
 
+            {/* Long Description with Markdown */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
-                Long Description
+                Detailed Description
               </Text>
-              <TextInput
-                style={[
-                  styles.textArea,
-                  {
-                    backgroundColor: theme.colors.surface,
-                    borderColor: theme.colors.border,
-                    color: theme.colors.textPrimary,
-                  },
-                ]}
+              <MarkdownEditorViewer
                 value={newTodo.longDesc}
-                onChangeText={(text) => setNewTodo({ ...newTodo, longDesc: text })}
-                placeholder="Detailed description"
-                placeholderTextColor={theme.colors.textSecondary}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
+                onChange={(text) => setNewTodo({ ...newTodo, longDesc: text })}
+                placeholder="Add detailed description... (Supports Markdown)"
+                editable={true}
+                showToolbar={true}
+                maxHeight={200}
+                minHeight={100}
               />
             </View>
 
-            {/* Priority Selector */}
-            <PrioritySelector
-              selectedPriority={newTodo.priority}
-              onPriorityChange={(priority) => setNewTodo({ ...newTodo, priority })}
+            {/* Smart Suggestions */}
+            <SmartSuggestions
+              onSelectDateTime={(date) => setNewTodo({ ...newTodo, dueDate: date.toISOString() })}
+              onSelectRecurrence={(recurrence) => setNewTodo({ ...newTodo, recurrence })}
             />
+
+            {/* Due Date & Time */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
+                Due Date & Time
+              </Text>
+              <CustomDateTimePicker
+                value={newTodo.dueDate ? new Date(newTodo.dueDate) : null}
+                onChange={(date) => setNewTodo({ ...newTodo, dueDate: date ? date.toISOString() : null })}
+                mode="datetime"
+                placeholder="Select due date & time"
+                minimumDate={new Date()}
+              />
+              {newTodo.dueDate && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={() => setNewTodo({ ...newTodo, dueDate: null })}
+                >
+                  <Icon name="close" size={16} color={theme.colors.textSecondary} />
+                  <Text style={[styles.clearButtonText, { color: theme.colors.textSecondary }]}>
+                    Clear due date
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Recurrence */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
+                Repeat
+              </Text>
+              <RecurrenceSelector
+                value={newTodo.recurrence}
+                onChange={(recurrence) => setNewTodo({ ...newTodo, recurrence })}
+                disabled={!newTodo.dueDate}
+              />
+              {!newTodo.dueDate && (
+                <Text style={[styles.helperText, { color: theme.colors.textSecondary }]}>
+                  Set a due date to enable recurring tasks
+                </Text>
+              )}
+            </View>
+
+            {/* Priority Selector */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
+                Priority
+              </Text>
+              <PrioritySelector
+                selectedPriority={newTodo.priority}
+                onPriorityChange={(priority) => setNewTodo({ ...newTodo, priority })}
+                size="normal"
+              />
+            </View>
 
             {/* Category Selector */}
             <View style={styles.inputGroup}>
@@ -321,134 +394,74 @@ const CurrentTodosScreen = () => {
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.textPrimary }]}>
-                Due Date (Optional)
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.colors.surface,
-                    borderColor: theme.colors.border,
-                    justifyContent: 'center',
-                  },
-                ]}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <View style={styles.dateInputContent}>
-                  <Icon 
-                    name="schedule" 
-                    size={20} 
-                    color={newTodo.dueDate ? theme.colors.accent : theme.colors.textSecondary} 
-                  />
-                  <Text
-                    style={[
-                      styles.dateInputText,
-                      { 
-                        color: newTodo.dueDate ? theme.colors.textPrimary : theme.colors.textSecondary,
-                      },
-                    ]}
-                  >
-                    {newTodo.dueDate 
-                      ? new Date(newTodo.dueDate).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })
-                      : 'Set due date'
-                    }
-                  </Text>
-                  {newTodo.dueDate && (
-                    <TouchableOpacity
-                      onPress={() => setNewTodo({ ...newTodo, dueDate: null })}
-                      style={styles.clearDateButton}
-                    >
-                      <Icon name="close" size={16} color={theme.colors.textSecondary} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </View>
+            {/* Summary Card */}
+            {(newTodo.dueDate || newTodo.recurrence.type !== 'none' || newTodo.priority !== 'medium') && (
+              <View style={[styles.summaryCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>
+                  Summary
+                </Text>
+                
+                {newTodo.dueDate && (
+                  <View style={styles.summaryItem}>
+                    <Icon name="schedule" size={16} color={theme.colors.accent} />
+                    <Text style={[styles.summaryText, { color: theme.colors.textSecondary }]}>
+                      Due: {new Date(newTodo.dueDate).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </View>
+                )}
+                
+                {newTodo.recurrence.type !== 'none' && (
+                  <View style={styles.summaryItem}>
+                    <Icon name="repeat" size={16} color={theme.colors.accent} />
+                    <Text style={[styles.summaryText, { color: theme.colors.textSecondary }]}>
+                      Repeats: {(() => {
+                        const { type, interval, weekdays } = newTodo.recurrence;
+                        switch (type) {
+                          case 'daily':
+                            return interval === 1 ? 'Daily' : `Every ${interval} days`;
+                          case 'weekly':
+                            if (weekdays && weekdays.length > 0) {
+                              const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                              return `Weekly on ${weekdays.map(d => dayNames[d]).join(', ')}`;
+                            }
+                            return interval === 1 ? 'Weekly' : `Every ${interval} weeks`;
+                          case 'monthly':
+                            return interval === 1 ? 'Monthly' : `Every ${interval} months`;
+                          case 'yearly':
+                            return interval === 1 ? 'Yearly' : `Every ${interval} years`;
+                          default:
+                            return 'Custom';
+                        }
+                      })()}
+                    </Text>
+                  </View>
+                )}
+                
+                {newTodo.priority !== 'medium' && (
+                  <View style={styles.summaryItem}>
+                    <Icon 
+                      name={newTodo.priority === 'high' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} 
+                      size={16} 
+                      color={
+                        newTodo.priority === 'high' ? '#FF6B6B' : 
+                        newTodo.priority === 'low' ? '#4ECDC4' : theme.colors.accent
+                      } 
+                    />
+                    <Text style={[styles.summaryText, { color: theme.colors.textSecondary }]}>
+                      {newTodo.priority.charAt(0).toUpperCase() + newTodo.priority.slice(1)} priority
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
           </ScrollView>
 
-          {/* Date Picker */}
-          {showDatePicker && (
-            <Modal
-              transparent={true}
-              animationType="fade"
-              visible={showDatePicker}
-              onRequestClose={() => setShowDatePicker(false)}
-            >
-              <View style={styles.datePickerOverlay}>
-                <TouchableOpacity
-                  style={styles.datePickerBackground}
-                  activeOpacity={1}
-                  onPress={() => setShowDatePicker(false)}
-                />
-                <View style={[styles.datePickerContainer, { backgroundColor: theme.colors.surface }]}>
-                  <View style={[styles.datePickerHeader, { borderBottomColor: theme.colors.border }]}>
-                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                      <Text style={[styles.datePickerButton, { color: theme.colors.textSecondary }]}>
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
-                    <Text style={[styles.datePickerTitle, { color: theme.colors.textPrimary }]}>
-                      Set Due Date
-                    </Text>
-                    <TouchableOpacity 
-                      onPress={() => {
-                        const today = new Date();
-                        today.setHours(23, 59, 59, 999);
-                        setNewTodo({ ...newTodo, dueDate: today.toISOString() });
-                        setShowDatePicker(false);
-                      }}
-                    >
-                      <Text style={[styles.datePickerButton, { color: theme.colors.accent }]}>
-                        Today
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  
-                  <View style={styles.dateOptions}>
-                    {[
-                      { label: 'Tomorrow', days: 1 },
-                      { label: 'This Weekend', days: 6 - new Date().getDay() },
-                      { label: 'Next Week', days: 7 },
-                      { label: 'Next Month', days: 30 },
-                    ].map((option) => (
-                      <TouchableOpacity
-                        key={option.label}
-                        style={[styles.dateOption, { borderBottomColor: theme.colors.border }]}
-                        onPress={() => {
-                          const date = new Date();
-                          date.setDate(date.getDate() + option.days);
-                          date.setHours(23, 59, 59, 999);
-                          setNewTodo({ ...newTodo, dueDate: date.toISOString() });
-                          setShowDatePicker(false);
-                        }}
-                      >
-                        <Text style={[styles.dateOptionText, { color: theme.colors.textPrimary }]}>
-                          {option.label}
-                        </Text>
-                        <Text style={[styles.dateOptionDate, { color: theme.colors.textSecondary }]}>
-                          {(() => {
-                            const date = new Date();
-                            date.setDate(date.getDate() + option.days);
-                            return date.toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            });
-                          })()}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              </View>
-            </Modal>
-          )}
         </SafeAreaView>
       </Modal>
 
@@ -590,69 +603,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 100,
   },
-  dateInputContent: {
+  clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 4,
   },
-  dateInputText: {
-    fontSize: 16,
-    flex: 1,
-  },
-  clearDateButton: {
-    padding: 4,
-  },
-  datePickerOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  datePickerBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  datePickerContainer: {
-    margin: 16,
-    borderRadius: 16,
-    maxHeight: '70%',
-  },
-  datePickerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  datePickerButton: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  datePickerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  dateOptions: {
-    padding: 8,
-  },
-  dateOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  dateOptionText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  dateOptionDate: {
+  clearButtonText: {
     fontSize: 14,
-    fontWeight: '400',
+  },
+  helperText: {
+    fontSize: 14,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  summaryCard: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  summaryText: {
+    fontSize: 14,
+    flex: 1,
   },
 });
 

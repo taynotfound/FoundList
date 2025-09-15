@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 import { createTheme, accentColors } from '../theme/colors';
+import { THEME_PRESETS, getThemeById } from '../theme/themePresets';
 
 const ThemeContext = createContext();
 
@@ -16,6 +17,8 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
   const [accentColor, setAccentColor] = useState(accentColors.blue);
   const [themeMode, setThemeMode] = useState('auto'); // 'light', 'dark', 'auto'
+  const [customThemeId, setCustomThemeId] = useState(null);
+  const [customColors, setCustomColors] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Determine current theme based on mode and system preference
@@ -27,7 +30,25 @@ export const ThemeProvider = ({ children }) => {
     return themeMode;
   };
 
-  const theme = createTheme(accentColor, getEffectiveTheme());
+  // Get the current theme - either custom or default
+  const getCurrentTheme = () => {
+    if (customColors) {
+      return {
+        colors: customColors,
+        isDark: getEffectiveTheme() === 'dark',
+        spacing: {
+          xs: 4,
+          sm: 8,
+          md: 16,
+          lg: 24,
+          xl: 32,
+        }
+      };
+    }
+    return createTheme(accentColor, getEffectiveTheme());
+  };
+
+  const theme = getCurrentTheme();
 
   useEffect(() => {
     loadSettings();
@@ -45,17 +66,36 @@ export const ThemeProvider = ({ children }) => {
 
   const loadSettings = async () => {
     try {
-      const [savedAccentColor, savedThemeMode] = await Promise.all([
+      const [savedAccentColor, savedThemeMode, savedCustomThemeId, savedCustomColors] = await Promise.all([
         AsyncStorage.getItem('accentColor'),
         AsyncStorage.getItem('themeMode'),
+        AsyncStorage.getItem('customThemeId'),
+        AsyncStorage.getItem('customColors'),
       ]);
       
       if (savedAccentColor) {
-        setAccentColor(savedAccentColor);
+        // Ensure the saved accent color is a valid hex color from our predefined set
+        const validColor = Object.values(accentColors).includes(savedAccentColor) 
+          ? savedAccentColor 
+          : accentColors.blue;
+        setAccentColor(validColor);
       }
       
       if (savedThemeMode) {
         setThemeMode(savedThemeMode);
+      }
+
+      if (savedCustomThemeId) {
+        setCustomThemeId(savedCustomThemeId);
+      }
+
+      if (savedCustomColors) {
+        try {
+          const colors = JSON.parse(savedCustomColors);
+          setCustomColors(colors);
+        } catch (e) {
+          console.warn('Failed to parse custom colors');
+        }
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -66,8 +106,13 @@ export const ThemeProvider = ({ children }) => {
 
   const updateAccentColor = async (newColor) => {
     try {
-      await AsyncStorage.setItem('accentColor', newColor);
-      setAccentColor(newColor);
+      // Ensure we only save valid hex colors
+      const validColor = typeof newColor === 'string' && Object.values(accentColors).includes(newColor)
+        ? newColor
+        : accentColors.blue;
+      
+      await AsyncStorage.setItem('accentColor', validColor);
+      setAccentColor(validColor);
     } catch (error) {
       console.error('Failed to save accent color:', error);
     }
@@ -82,13 +127,50 @@ export const ThemeProvider = ({ children }) => {
     }
   };
 
+  const setCustomTheme = async (themeId, colors) => {
+    try {
+      await Promise.all([
+        AsyncStorage.setItem('customThemeId', themeId),
+        AsyncStorage.setItem('customColors', JSON.stringify(colors)),
+      ]);
+      setCustomThemeId(themeId);
+      setCustomColors(colors);
+    } catch (error) {
+      console.error('Failed to save custom theme:', error);
+    }
+  };
+
+  const resetToDefaultTheme = async () => {
+    try {
+      await Promise.all([
+        AsyncStorage.removeItem('customThemeId'),
+        AsyncStorage.removeItem('customColors'),
+      ]);
+      setCustomThemeId(null);
+      setCustomColors(null);
+    } catch (error) {
+      console.error('Failed to reset theme:', error);
+    }
+  };
+
+  const toggleTheme = () => {
+    const currentEffective = getEffectiveTheme();
+    const newMode = currentEffective === 'dark' ? 'light' : 'dark';
+    updateThemeMode(newMode);
+  };
+
   const value = {
     theme,
     accentColor,
     themeMode,
     effectiveTheme: getEffectiveTheme(),
+    isDark: getEffectiveTheme() === 'dark',
+    currentThemeId: customThemeId,
     updateAccentColor,
     updateThemeMode,
+    setCustomTheme,
+    resetToDefaultTheme,
+    toggleTheme,
     isLoading,
   };
 

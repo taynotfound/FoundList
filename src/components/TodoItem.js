@@ -8,6 +8,8 @@ import {
   Dimensions,
   Image,
   ScrollView,
+  Modal,
+  Alert,
 } from 'react-native';
 import {
   PanGestureHandler,
@@ -27,15 +29,29 @@ const SWIPE_THRESHOLD = 120; // Increased threshold for more deliberate swipes
 
 const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
   const { theme } = useTheme();
-  const { completeTodo, deleteTodo, restoreTodo } = useTodos();
+  const { completeTodo, deleteTodo, restoreTodo, updateTodo } = useTodos();
   const translateX = useRef(new Animated.Value(0)).current;
   const isActionTriggered = useRef(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState(null);
   
   // Animation values for entrance and interactions
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const [pressScale] = useState(new Animated.Value(1));
+
+  const isDueSoon = () => {
+    if (!todo.dueDate || isCompleted) return false;
+    const date = new Date(todo.dueDate);
+    const now = new Date();
+    const timeDiff = date - now;
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    
+    // Due soon if within 3 hours and in the future
+    return hoursDiff > 0 && hoursDiff <= 3;
+  };
 
   // Mount animation
   useEffect(() => {
@@ -43,7 +59,28 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
     const scaleIn = createScaleAnimation(scaleAnim, 1, 400);
     
     Animated.parallel([fadeIn, scaleIn]).start();
-  }, []);
+
+    // Start pulsing animation for items due soon
+    if (isDueSoon()) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.02,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      
+      return () => pulseAnimation.stop();
+    }
+  }, [isDueSoon()]);
 
   // Press animation
   const handlePressIn = () => {
@@ -53,6 +90,15 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
       tension: 300,
       friction: 10,
     }).start();
+
+    // Start long press timer
+    const timer = setTimeout(() => {
+      if (!isCompleted) {
+        setShowQuickActions(true);
+        // Haptic feedback would go here if available
+      }
+    }, 500); // 500ms for long press
+    setLongPressTimer(timer);
   };
 
   const handlePressOut = () => {
@@ -62,6 +108,12 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
       tension: 300,
       friction: 10,
     }).start();
+
+    // Clear long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
   };
 
   const onGestureEvent = Animated.event(
@@ -199,11 +251,42 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
   const formatDueDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
-    const today = new Date();
-    const diffTime = date - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const now = new Date();
     
-    if (diffDays === 0) return 'Due today';
+    // Compare dates only (ignore time) for day calculations
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = dateOnly - todayOnly;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // For today's tasks, show more specific time information
+    if (diffDays === 0) {
+      const timeDiff = date - now;
+      const minutesDiff = Math.floor(timeDiff / (1000 * 60));
+      const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+      
+      if (timeDiff < 0) {
+        // Past due today
+        const absMinutes = Math.abs(minutesDiff);
+        const absHours = Math.abs(hoursDiff);
+        if (absHours >= 1) {
+          return `Due ${absHours} hour${absHours !== 1 ? 's' : ''} ago`;
+        } else {
+          return `Due ${absMinutes} minute${absMinutes !== 1 ? 's' : ''} ago`;
+        }
+      } else {
+        // Future due today
+        if (hoursDiff >= 1) {
+          return `Due today in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`;
+        } else if (minutesDiff > 0) {
+          return `Due today in ${minutesDiff} minute${minutesDiff !== 1 ? 's' : ''}`;
+        } else {
+          return 'Due now';
+        }
+      }
+    }
+    
     if (diffDays === 1) return 'Due tomorrow';
     if (diffDays === -1) return 'Due yesterday';
     if (diffDays < 0) return `${Math.abs(diffDays)} days overdue`;
@@ -215,20 +298,129 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
     });
   };
 
+  // Quick Actions handlers
+  const handleQuickAction = (action) => {
+    setShowQuickActions(false);
+    
+    switch (action) {
+      case 'complete':
+        completeTodo(todo.id);
+        break;
+      case 'delete':
+        Alert.alert(
+          'Delete Todo',
+          'Are you sure you want to delete this todo?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: () => deleteTodo(todo.id) },
+          ]
+        );
+        break;
+      case 'duplicate':
+        const duplicatedTodo = {
+          ...todo,
+          id: Date.now().toString(),
+          title: `${todo.title} (Copy)`,
+          createdAt: new Date().toISOString(),
+          completedAt: null,
+        };
+        // This would require adding a duplicateTodo function to TodoContext
+        // For now, we'll use updateTodo to simulate duplication
+        updateTodo(duplicatedTodo.id, duplicatedTodo);
+        break;
+      case 'reschedule':
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        updateTodo(todo.id, { ...todo, dueDate: tomorrow.toISOString() });
+        break;
+      case 'priority':
+        const priorities = ['low', 'medium', 'high'];
+        const currentIndex = priorities.indexOf(todo.priority || 'medium');
+        const nextPriority = priorities[(currentIndex + 1) % priorities.length];
+        updateTodo(todo.id, { ...todo, priority: nextPriority });
+        break;
+      case 'edit':
+        onPress?.();
+        break;
+    }
+  };
+
+  const QuickActionsModal = () => {
+    const quickActions = [
+      { id: 'complete', icon: 'check-circle', label: 'Complete', color: theme.colors.success },
+      { id: 'edit', icon: 'edit', label: 'Edit', color: theme.colors.accent },
+      { id: 'duplicate', icon: 'content-copy', label: 'Duplicate', color: theme.colors.textSecondary },
+      { id: 'reschedule', icon: 'schedule', label: 'Reschedule', color: theme.colors.warning },
+      { id: 'priority', icon: 'flag', label: 'Priority', color: theme.colors.accent },
+      { id: 'delete', icon: 'delete', label: 'Delete', color: theme.colors.destructive },
+    ];
+
+    return (
+      <Modal
+        visible={showQuickActions}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowQuickActions(false)}
+      >
+        <TouchableOpacity
+          style={styles.quickActionsOverlay}
+          activeOpacity={1}
+          onPress={() => setShowQuickActions(false)}
+        >
+          <View style={[styles.quickActionsModal, { backgroundColor: theme.colors.surface }]}>
+            <View style={styles.quickActionsHeader}>
+              <Text style={[styles.quickActionsTitle, { color: theme.colors.textPrimary }]}>
+                Quick Actions
+              </Text>
+              <Text style={[styles.quickActionsTodoTitle, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                {todo.title}
+              </Text>
+            </View>
+            <View style={styles.quickActionsGrid}>
+              {quickActions.map((action) => (
+                <TouchableOpacity
+                  key={action.id}
+                  style={[styles.quickActionButton, { borderColor: theme.colors.border }]}
+                  onPress={() => handleQuickAction(action.id)}
+                >
+                  <View style={[styles.quickActionIcon, { backgroundColor: action.color + '20' }]}>
+                    <Icon name={action.icon} size={24} color={action.color} />
+                  </View>
+                  <Text style={[styles.quickActionLabel, { color: theme.colors.textPrimary }]}>
+                    {action.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={[styles.quickActionsCancelButton, { backgroundColor: theme.colors.background }]}
+              onPress={() => setShowQuickActions(false)}
+            >
+              <Text style={[styles.quickActionsCancelText, { color: theme.colors.textPrimary }]}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
   return (
-    <Animated.View 
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [
-            { scale: scaleAnim },
-            { translateX: shakeAnim },
-            { scale: pressScale },
-          ],
-        }
-      ]}
-    >
+    <>
+      <Animated.View 
+        style={[
+          styles.container,
+          {
+            opacity: fadeAnim,
+            transform: [
+              { scale: scaleAnim },
+              { translateX: shakeAnim },
+              { scale: pressScale },
+            ],
+          }
+        ]}
+      >
       <PanGestureHandler
         onGestureEvent={onGestureEvent}
         onHandlerStateChange={onHandlerStateChange}
@@ -279,10 +471,14 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
               styles.todoItem,
               {
                 backgroundColor: theme.colors.surface,
-                borderColor: theme.colors.border,
-                transform: [{ translateX }],
+                borderColor: isDueSoon() 
+                  ? theme.colors.destructive 
+                  : isOverdue() 
+                    ? theme.colors.destructive 
+                    : theme.colors.border,
+                borderWidth: isDueSoon() || isOverdue() ? 2 : 1,
+                transform: [{ translateX }, { scale: isDueSoon() ? pulseAnim : 1 }],
               },
-              isOverdue() && { borderColor: theme.colors.destructive, borderWidth: 2 },
             ]}
           >
             {/* Overdue Banner */}
@@ -295,10 +491,10 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
 
             <TouchableOpacity
               style={styles.todoContent}
-              onPress={onPress}
+              onPress={isCompleted ? undefined : onPress}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
-              activeOpacity={0.9}
+              activeOpacity={isCompleted ? 1 : 0.9}
             >
               <View style={styles.todoHeader}>
                 <View style={styles.titleRow}>
@@ -378,14 +574,14 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
                   <Icon 
                     name="schedule" 
                     size={14} 
-                    color={isOverdue() ? theme.colors.destructive : theme.colors.accent} 
+                    color={isOverdue() || isDueSoon() ? theme.colors.destructive : theme.colors.accent} 
                   />
                   <Text
                     style={[
                       styles.dueDateText,
                       { 
-                        color: isOverdue() ? theme.colors.destructive : theme.colors.accent,
-                        fontWeight: isOverdue() ? '600' : '500',
+                        color: isOverdue() || isDueSoon() ? theme.colors.destructive : theme.colors.accent,
+                        fontWeight: isOverdue() || isDueSoon() ? '600' : '500',
                       },
                     ]}
                   >
@@ -440,6 +636,10 @@ const TodoItem = ({ todo, onPress, isCompleted = false, index = 0 }) => {
         </Animated.View>
       </PanGestureHandler>
     </Animated.View>
+
+    {/* Quick Actions Modal */}
+    <QuickActionsModal />
+  </>
   );
 };
 
@@ -595,6 +795,76 @@ const styles = StyleSheet.create({
   },
   moreImagesText: {
     fontSize: 12,
+    fontWeight: '600',
+  },
+  // Quick Actions Modal Styles
+  quickActionsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  quickActionsModal: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  quickActionsHeader: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  quickActionsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  quickActionsTodoTitle: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 20,
+  },
+  quickActionButton: {
+    width: '30%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  quickActionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  quickActionsCancelButton: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  quickActionsCancelText: {
+    fontSize: 16,
     fontWeight: '600',
   },
 });

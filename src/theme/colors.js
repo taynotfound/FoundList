@@ -70,12 +70,17 @@ export const baseColors = {
 export const createTheme = (accentColor = accentColors.blue, mode = 'dark') => {
   const colorScheme = baseColors[mode] || baseColors.dark;
   
+  // Ensure accentColor is a valid string
+  const validAccentColor = typeof accentColor === 'string' && accentColor.startsWith('#') 
+    ? accentColor 
+    : accentColors.blue;
+  
   return {
     colors: {
       ...colorScheme,
-      accent: accentColor,
-      accentLight: accentColor + '20', // 20% opacity
-      accentDark: accentColor + 'CC', // 80% opacity
+      accent: validAccentColor,
+      accentLight: validAccentColor + '20', // 20% opacity
+      accentDark: validAccentColor + 'CC', // 80% opacity
     },
     spacing: {
       xs: 4,

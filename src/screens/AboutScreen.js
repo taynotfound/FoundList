@@ -54,7 +54,7 @@ const AboutScreen = ({ navigation }) => {
             onPress={() => setShowChangelog(true)}
           >
             <Text style={[styles.version, { color: theme.colors.textSecondary }]}>
-              Version 1.0.0
+              Version 2.0.0
             </Text>
             <Icon name="info" size={16} color={theme.colors.textSecondary} style={styles.versionIcon} />
           </TouchableOpacity>

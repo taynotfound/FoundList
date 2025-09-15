@@ -22,8 +22,10 @@ import PrioritySelector, { PriorityBadge } from './PrioritySelector';
 import CategorySelector, { CategoryBadge } from './CategorySelector';
 import TagsInput, { TagBadge } from './TagsInput';
 import ImageGalleryModal from './ImageGalleryModal';
-import MarkdownEditor from './MarkdownEditor';
-import MarkdownDisplayer from './MarkdownDisplayer';
+import MarkdownEditorViewer from './MarkdownEditorViewer';
+import CustomDateTimePicker from './DateTimePicker';
+import RecurrenceSelector from './RecurrenceSelector';
+import SmartSuggestions from './SmartSuggestions';
 import { createFadeInAnimation, createSlideInAnimation } from '../utils/animations';
 
 const TodoDetailModal = ({ todo, visible, onClose }) => {
@@ -41,6 +43,7 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
     priority: 'medium',
     category: null,
     tags: [],
+    recurrence: { type: 'none', interval: 1, weekdays: [], endDate: null },
   });
 
   // Animation refs
@@ -63,6 +66,7 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
         priority: todo.priority || 'medium',
         category: todo.category || null,
         tags: todo.tags || [],
+        recurrence: todo.recurrence || { type: 'none', interval: 1, weekdays: [], endDate: null },
       });
     } else {
       // Reset animations when modal closes
@@ -81,6 +85,7 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
         priority: todo.priority || 'medium',
         category: todo.category || null,
         tags: todo.tags || [],
+        recurrence: todo.recurrence || { type: 'none', interval: 1, weekdays: [], endDate: null },
       });
     }
   }, [todo]);
@@ -99,6 +104,7 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
         longDesc: editedTodo.longDesc.trim(),
         dueDate: editedTodo.dueDate,
         priority: editedTodo.priority,
+        recurrence: editedTodo.recurrence,
       });
       setIsEditing(false);
     } catch (error) {
@@ -115,6 +121,7 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
       longDesc: todo.longDesc || '',
       dueDate: todo.dueDate || null,
       priority: todo.priority || 'medium',
+      recurrence: todo.recurrence || { type: 'none', interval: 1, weekdays: [], endDate: null },
     });
     setIsEditing(false);
   };
@@ -379,6 +386,94 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
             )}
           </View>
 
+          {/* Smart Suggestions */}
+          {isEditing && (
+            <SmartSuggestions
+              onSelectDateTime={(date) => setEditedTodo({ ...editedTodo, dueDate: date.toISOString() })}
+              onSelectRecurrence={(recurrence) => setEditedTodo({ ...editedTodo, recurrence })}
+            />
+          )}
+
+          {/* Due Date & Time */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+              Due Date & Time
+            </Text>
+            {isEditing ? (
+              <CustomDateTimePicker
+                value={editedTodo.dueDate ? new Date(editedTodo.dueDate) : null}
+                onChange={(date) => setEditedTodo({ ...editedTodo, dueDate: date ? date.toISOString() : null })}
+                mode="datetime"
+                placeholder="Select due date & time"
+                minimumDate={new Date()}
+              />
+            ) : (
+              <Text
+                style={[
+                  styles.descText,
+                  { color: todo.dueDate ? theme.colors.textPrimary : theme.colors.textSecondary },
+                ]}
+              >
+                {todo.dueDate 
+                  ? new Date(todo.dueDate).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })
+                  : 'No due date set'
+                }
+              </Text>
+            )}
+          </View>
+
+          {/* Recurrence */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+              Repeat
+            </Text>
+            {isEditing ? (
+              <RecurrenceSelector
+                value={editedTodo.recurrence}
+                onChange={(recurrence) => setEditedTodo({ ...editedTodo, recurrence })}
+                disabled={!editedTodo.dueDate}
+              />
+            ) : (
+              <Text
+                style={[
+                  styles.descText,
+                  { color: todo.recurrence && todo.recurrence.type !== 'none' ? theme.colors.textPrimary : theme.colors.textSecondary },
+                ]}
+              >
+                {todo.recurrence && todo.recurrence.type !== 'none' 
+                  ? (() => {
+                      const { type, interval, weekdays } = todo.recurrence;
+                      switch (type) {
+                        case 'daily':
+                          return interval === 1 ? 'Daily' : `Every ${interval} days`;
+                        case 'weekly':
+                          if (weekdays && weekdays.length > 0) {
+                            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                            const selectedDays = weekdays.map(d => dayNames[d]).join(', ');
+                            return `Weekly on ${selectedDays}`;
+                          }
+                          return interval === 1 ? 'Weekly' : `Every ${interval} weeks`;
+                        case 'monthly':
+                          return interval === 1 ? 'Monthly' : `Every ${interval} months`;
+                        case 'yearly':
+                          return interval === 1 ? 'Yearly' : `Every ${interval} years`;
+                        default:
+                          return 'Custom';
+                      }
+                    })()
+                  : 'Does not repeat'
+                }
+              </Text>
+            )}
+          </View>
+
           {/* Images */}
           {todo.images && todo.images.length > 0 && (
             <View style={styles.section}>
@@ -467,26 +562,15 @@ const TodoDetailModal = ({ todo, visible, onClose }) => {
 
           {/* Long Description */}
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
-              Description
-            </Text>
-            {isEditing ? (
-              <MarkdownEditor
-                value={editedTodo.longDesc}
-                onChangeText={(text) => setEditedTodo({ ...editedTodo, longDesc: text })}
-                placeholder="Detailed description (supports markdown)"
-                minHeight={120}
-                maxHeight={200}
-                showPreview={true}
-              />
-            ) : (
-              <MarkdownDisplayer
-                content={todo.longDesc}
-                onEdit={() => setIsEditing(true)}
-                showEditButton={true}
-                compact={false}
-              />
-            )}
+            <MarkdownEditorViewer
+              value={editedTodo.longDesc}
+              onChange={(text) => setEditedTodo({ ...editedTodo, longDesc: text })}
+              placeholder="Add a detailed description... (Supports Markdown)"
+              editable={!isCompleted}
+              showToolbar={true}
+              maxHeight={250}
+              minHeight={120}
+            />
           </View>
 
           {/* Dates */}

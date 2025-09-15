@@ -81,12 +81,18 @@ const SearchBar = ({ onSearch, onFocus, onBlur, placeholder = "Search todos..." 
 
   const animatedBackgroundColor = backgroundAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [theme.colors.surface, theme.colors.surfaceElevated],
+    outputRange: [
+      theme.colors.surface || '#F2F2F7', 
+      theme.colors.surfaceElevated || theme.colors.surface || '#FFFFFF'
+    ],
   });
 
   const animatedBorderColor = backgroundAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [theme.colors.border, theme.colors.accent],
+    outputRange: [
+      theme.colors.border || '#C6C6C8', 
+      theme.colors.accent || '#007AFF'
+    ],
   });
 
   return (

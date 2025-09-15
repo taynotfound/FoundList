@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -62,9 +63,33 @@ const ChangelogModal = ({ visible, onClose }) => {
     });
   };
 
+  const handleLinkPress = (url) => {
+    // Validate and handle different types of URLs
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      Linking.openURL(url).catch((err) => {
+        console.error('Failed to open URL:', err);
+        Alert.alert('Error', 'Could not open link');
+      });
+    } else if (url.startsWith('#')) {
+      // Handle anchor links within the same document
+      console.log('Anchor link clicked:', url);
+    } else {
+      // Handle relative URLs by making them absolute GitHub URLs
+      const baseUrl = 'https://github.com/taynotfound/FoundList';
+      const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
+      Linking.openURL(fullUrl).catch((err) => {
+        console.error('Failed to open relative URL:', err);
+        Alert.alert('Error', 'Could not open link');
+      });
+    }
+  };
+
   const openReleaseOnGitHub = () => {
     if (release?.html_url) {
-      Linking.openURL(release.html_url);
+      Linking.openURL(release.html_url).catch((err) => {
+        console.error('Failed to open GitHub release:', err);
+        Alert.alert('Error', 'Could not open GitHub release page');
+      });
     }
   };
 
@@ -264,9 +289,7 @@ const ChangelogModal = ({ visible, onClose }) => {
                 {release.body ? (
                   <Markdown 
                     style={getMarkdownStyles()}
-                    onLinkPress={(url) => {
-                      Linking.openURL(url);
-                    }}
+                    onLinkPress={handleLinkPress}
                   >
                     {formatReleaseBody(release.body)}
                   </Markdown>

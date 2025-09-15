@@ -14,26 +14,20 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { useTodos } from '../contexts/TodoContext';
-import { accentColors } from '../theme/colors';
+import { useGamification } from '../contexts/GamificationContext';
 import AboutScreen from './AboutScreen';
+import ThemeSelector from '../components/ThemeSelector';
+import GamificationDashboard from '../components/GamificationDashboard';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
-const SettingsScreen = () => {
-  const { theme, accentColor, themeMode, updateAccentColor, updateThemeMode } = useTheme();
+const SettingsScreen = ({ navigation }) => {
+  const { theme } = useTheme();
   const { todos, completedTodos, clearCompletedTodos, deleteTodo } = useTodos();
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showThemePicker, setShowThemePicker] = useState(false);
+  const { stats } = useGamification();
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-
-  const colorOptions = Object.entries(accentColors).map(([name, color]) => ({
-    name: name.charAt(0).toUpperCase() + name.slice(1),
-    color,
-    key: name,
-  }));
-
-  const handleColorSelect = (color) => {
-    updateAccentColor(color);
-    setShowColorPicker(false);
-  };
+  const [showGamification, setShowGamification] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const handleClearAllData = () => {
     const totalTodos = todos.length + completedTodos.length;
@@ -109,122 +103,6 @@ const SettingsScreen = () => {
     </TouchableOpacity>
   );
 
-  const ColorPicker = () => (
-    <View style={[styles.colorPicker, { backgroundColor: theme.colors.surface }]}>
-      <Text style={[styles.colorPickerTitle, { color: theme.colors.textPrimary }]}>
-        Choose Accent Color
-      </Text>
-      <View style={styles.colorGrid}>
-        {colorOptions.map((option) => (
-          <TouchableOpacity
-            key={option.key}
-            style={[
-              styles.colorOption,
-              { backgroundColor: option.color },
-              accentColor === option.color && styles.selectedColor,
-            ]}
-            onPress={() => handleColorSelect(option.color)}
-          >
-            {accentColor === option.color && (
-              <Icon name="check" size={20} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
-      <TouchableOpacity
-        style={[styles.colorPickerCancel, { borderTopColor: theme.colors.border }]}
-        onPress={() => setShowColorPicker(false)}
-      >
-        <Text style={[styles.colorPickerCancelText, { color: theme.colors.textSecondary }]}>
-          Cancel
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const ThemePicker = () => {
-    const themeOptions = [
-      { key: 'light', label: 'Light', icon: 'brightness-7', description: 'Light theme' },
-      { key: 'dark', label: 'Dark', icon: 'brightness-2', description: 'Dark theme' },
-      { key: 'auto', label: 'Auto', icon: 'brightness-auto', description: 'Follow system' },
-    ];
-
-    return (
-      <View style={[styles.colorPicker, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.colorPickerTitle, { color: theme.colors.textPrimary }]}>
-          Choose Theme
-        </Text>
-        <View style={styles.themeOptions}>
-          {themeOptions.map((option) => (
-            <TouchableOpacity
-              key={option.key}
-              style={[
-                styles.themeOption,
-                { 
-                  backgroundColor: themeMode === option.key ? theme.colors.accent + '20' : 'transparent',
-                  borderColor: themeMode === option.key ? theme.colors.accent : theme.colors.border,
-                },
-              ]}
-              onPress={() => {
-                updateThemeMode(option.key);
-                setShowThemePicker(false);
-              }}
-            >
-              <Icon 
-                name={option.icon} 
-                size={24} 
-                color={themeMode === option.key ? theme.colors.accent : theme.colors.textSecondary} 
-              />
-              <View style={styles.themeOptionText}>
-                <Text style={[
-                  styles.themeOptionLabel, 
-                  { color: themeMode === option.key ? theme.colors.accent : theme.colors.textPrimary }
-                ]}>
-                  {option.label}
-                </Text>
-                <Text style={[
-                  styles.themeOptionDesc, 
-                  { color: theme.colors.textSecondary }
-                ]}>
-                  {option.description}
-                </Text>
-              </View>
-              {themeMode === option.key && (
-                <Icon name="check" size={20} color={theme.colors.accent} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TouchableOpacity
-          style={[styles.colorPickerCancel, { borderTopColor: theme.colors.border }]}
-          onPress={() => setShowThemePicker(false)}
-        >
-          <Text style={[styles.colorPickerCancelText, { color: theme.colors.textSecondary }]}>
-            Cancel
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  const getCurrentColorName = () => {
-    const colorEntry = Object.entries(accentColors).find(([, color]) => color === accentColor);
-    return colorEntry ? colorEntry[0].charAt(0).toUpperCase() + colorEntry[0].slice(1) : 'Custom';
-  };
-
-  const getCurrentThemeModeName = () => {
-    switch (themeMode) {
-      case 'light':
-        return 'Light';
-      case 'dark':
-        return 'Dark';
-      case 'auto':
-        return 'Auto';
-      default:
-        return 'Auto';
-    }
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView 
@@ -244,10 +122,35 @@ const SettingsScreen = () => {
                 FoundList
               </Text>
               <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>
-                Version 1.0.0
+                Version 2.0.0
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Progress & Achievements */}
+        <View style={[styles.section, { borderBottomColor: theme.colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>
+            PROGRESS & ACHIEVEMENTS
+          </Text>
+          <SettingItem
+            icon="emoji-events"
+            title="View Dashboard"
+            subtitle={`Level ${stats.level} • ${stats.totalPoints} points • ${stats.currentStreak} day streak`}
+            onPress={() => setShowGamification(true)}
+            rightElement={
+              <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
+            }
+          />
+          <SettingItem
+            icon="analytics"
+            title="Analytics Dashboard"
+            subtitle="View productivity insights and trends"
+            onPress={() => setShowAnalytics(true)}
+            rightElement={
+              <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
+            }
+          />
         </View>
 
         {/* Appearance */}
@@ -256,25 +159,12 @@ const SettingsScreen = () => {
             APPEARANCE
           </Text>
           <SettingItem
-            icon="brightness-6"
-            title="Theme"
-            subtitle={getCurrentThemeModeName()}
-            onPress={() => setShowThemePicker(true)}
-            rightElement={
-              <Icon 
-                name={themeMode === 'auto' ? 'brightness-auto' : themeMode === 'light' ? 'brightness-7' : 'brightness-2'} 
-                size={20} 
-                color={theme.colors.accent} 
-              />
-            }
-          />
-          <SettingItem
             icon="palette"
-            title="Accent Color"
-            subtitle={getCurrentColorName()}
-            onPress={() => setShowColorPicker(true)}
+            title="Theme & Colors"
+            subtitle="Customize app appearance"
+            onPress={() => setShowThemeSelector(true)}
             rightElement={
-              <View style={[styles.colorPreview, { backgroundColor: accentColor }]} />
+              <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
             }
           />
         </View>
@@ -339,35 +229,17 @@ const SettingsScreen = () => {
           <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
             Made with ❤️ by taynotfound
           </Text>
-          <Text style={[styles.footerText, { color: theme.colors.textTertiary }]}>
+          <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
             Built with React Native & Expo
           </Text>
         </View>
       </ScrollView>
 
-      {/* Color Picker Overlay */}
-      {showColorPicker && (
-        <View style={styles.overlay}>
-          <TouchableOpacity
-            style={styles.overlayBackground}
-            activeOpacity={1}
-            onPress={() => setShowColorPicker(false)}
-          />
-          <ColorPicker />
-        </View>
-      )}
-
-      {/* Theme Picker Overlay */}
-      {showThemePicker && (
-        <View style={styles.overlay}>
-          <TouchableOpacity
-            style={styles.overlayBackground}
-            activeOpacity={1}
-            onPress={() => setShowThemePicker(false)}
-          />
-          <ThemePicker />
-        </View>
-      )}
+      {/* Theme Selector Modal */}
+      <ThemeSelector
+        visible={showThemeSelector}
+        onClose={() => setShowThemeSelector(false)}
+      />
 
       {/* About Modal */}
       <Modal
@@ -378,6 +250,18 @@ const SettingsScreen = () => {
       >
         <AboutScreen navigation={{ goBack: () => setShowAbout(false) }} />
       </Modal>
+
+      {/* Gamification Dashboard Modal */}
+      <GamificationDashboard
+        visible={showGamification}
+        onClose={() => setShowGamification(false)}
+      />
+
+      {/* Analytics Dashboard Modal */}
+      <AnalyticsDashboard
+        visible={showAnalytics}
+        onClose={() => setShowAnalytics(false)}
+      />
     </View>
   );
 };
@@ -461,89 +345,6 @@ const styles = StyleSheet.create({
   settingSubtitle: {
     fontSize: 14,
     fontWeight: '400',
-  },
-  colorPreview: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'flex-end',
-  },
-  overlayBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  colorPicker: {
-    margin: 16,
-    borderRadius: 16,
-    paddingTop: 24,
-    paddingHorizontal: 24,
-  },
-  colorPickerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 24,
-  },
-  colorOption: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  selectedColor: {
-    transform: [{ scale: 1.1 }],
-  },
-  colorPickerCancel: {
-    borderTopWidth: 1,
-    paddingTop: 16,
-    paddingBottom: 16,
-  },
-  colorPickerCancelText: {
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  themeOptions: {
-    gap: 8,
-    marginBottom: 24,
-  },
-  themeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  themeOptionText: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  themeOptionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  themeOptionDesc: {
-    fontSize: 14,
   },
   footer: {
     paddingHorizontal: 16,

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { useGamification } from './GamificationContext';
+import NotificationService from '../services/NotificationService';
 
 const TodoContext = createContext();
 
@@ -67,6 +69,78 @@ const sortTodos = (todos, sortBy) => {
   }
 };
 
+// Recurrence utility functions
+const calculateNextOccurrence = (date, recurrence) => {
+  if (!recurrence || recurrence.type === 'none') {
+    return null;
+  }
+
+  const currentDate = new Date(date);
+  const { type, interval = 1, weekdays = [] } = recurrence;
+
+  switch (type) {
+    case 'daily':
+      currentDate.setDate(currentDate.getDate() + interval);
+      return currentDate;
+
+    case 'weekly':
+      if (weekdays.length > 0) {
+        // Find next occurrence based on selected weekdays
+        const currentDay = currentDate.getDay();
+        let daysToAdd = 1;
+        
+        while (daysToAdd <= 7) {
+          const nextDay = (currentDay + daysToAdd) % 7;
+          if (weekdays.includes(nextDay)) {
+            currentDate.setDate(currentDate.getDate() + daysToAdd);
+            return currentDate;
+          }
+          daysToAdd++;
+        }
+        
+        // If no valid day found in next week, add the interval weeks
+        currentDate.setDate(currentDate.getDate() + (7 * interval));
+        return currentDate;
+      } else {
+        currentDate.setDate(currentDate.getDate() + (7 * interval));
+        return currentDate;
+      }
+
+    case 'monthly':
+      currentDate.setMonth(currentDate.getMonth() + interval);
+      return currentDate;
+
+    case 'yearly':
+      currentDate.setFullYear(currentDate.getFullYear() + interval);
+      return currentDate;
+
+    default:
+      return null;
+  }
+};
+
+const shouldCreateRecurringInstance = (todo) => {
+  if (!todo.recurrence || todo.recurrence.type === 'none') {
+    return false;
+  }
+
+  if (!todo.completedAt) {
+    return false; // Only create new instances when todo is completed
+  }
+
+  const nextOccurrence = calculateNextOccurrence(new Date(todo.completedAt), todo.recurrence);
+  if (!nextOccurrence) {
+    return false;
+  }
+
+  // Check if end date is set and passed
+  if (todo.recurrence.endDate && new Date(todo.recurrence.endDate) < nextOccurrence) {
+    return false;
+  }
+
+  return true;
+};
+
 export const useTodos = () => {
   const context = useContext(TodoContext);
   if (!context) {
@@ -80,9 +154,19 @@ export const TodoProvider = ({ children }) => {
   const [completedTodos, setCompletedTodos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState('smart'); // 'smart', 'dueDate', 'createdAt', 'alphabetical', 'priority'
+  
+  // Get gamification context if available (it might not be ready initially)
+  let gamification = null;
+  try {
+    gamification = useGamification();
+  } catch (error) {
+    // GamificationProvider not ready yet, that's ok
+  }
 
   useEffect(() => {
     loadTodos();
+    // Initialize notification service
+    NotificationService.initialize();
   }, []);
 
   const loadTodos = async () => {
@@ -148,7 +232,7 @@ export const TodoProvider = ({ children }) => {
     }
   };
 
-  const addTodo = async (title, shortDesc = '', longDesc = '', dueDate = null, priority = 'medium', category = null, tags = [], images = []) => {
+  const addTodo = async (title, shortDesc = '', longDesc = '', dueDate = null, priority = 'medium', category = null, tags = [], images = [], recurrence = null) => {
     const newTodo = {
       id: Date.now().toString(),
       title: title.trim(),
@@ -159,6 +243,7 @@ export const TodoProvider = ({ children }) => {
       category: category, // category id from CATEGORIES
       tags: Array.isArray(tags) ? tags : [], // array of tag strings
       images: Array.isArray(images) ? images : [], // array of image objects
+      recurrence: recurrence, // recurrence object with type, interval, weekdays, endDate
       createdAt: new Date().toISOString(),
       notificationIds: [],
     };
@@ -166,6 +251,14 @@ export const TodoProvider = ({ children }) => {
     const newTodos = [newTodo, ...todos];
     setTodos(newTodos);
     await saveTodos(newTodos, completedTodos);
+
+    // Schedule smart notifications for the new todo
+    await NotificationService.scheduleSmartNotifications(newTodo);
+
+    // Award points for creating a todo
+    if (gamification?.onTodoCreated) {
+      await gamification.onTodoCreated();
+    }
 
     Toast.show({
       type: 'success',
@@ -196,12 +289,46 @@ export const TodoProvider = ({ children }) => {
       completedAt: new Date().toISOString(),
     };
 
-    const newTodos = todos.filter(todo => todo.id !== id);
+    let newTodos = todos.filter(todo => todo.id !== id);
     const newCompletedTodos = [completedTodo, ...completedTodos];
+
+    // Handle recurring todos
+    if (shouldCreateRecurringInstance(completedTodo)) {
+      const nextOccurrence = calculateNextOccurrence(new Date(completedTodo.completedAt), completedTodo.recurrence);
+      
+      if (nextOccurrence) {
+        const recurringTodo = {
+          ...todoToComplete,
+          id: Date.now().toString() + '_recurring',
+          dueDate: nextOccurrence.toISOString(),
+          createdAt: new Date().toISOString(),
+          notificationIds: [],
+        };
+        
+        newTodos = [recurringTodo, ...newTodos];
+        
+        Toast.show({
+          type: 'info',
+          text1: 'Recurring Todo Created',
+          text2: `Next occurrence: ${nextOccurrence.toLocaleDateString()}`,
+        });
+      }
+    }
 
     setTodos(newTodos);
     setCompletedTodos(newCompletedTodos);
     await saveTodos(newTodos, newCompletedTodos);
+
+    // Cancel notifications for completed todo
+    await NotificationService.cancelTodoNotifications(id);
+
+    // Update productivity patterns for smart notifications
+    await NotificationService.updateProductivityPatterns(completedTodo);
+
+    // Award points for completing todo
+    if (gamification?.onTodoCompleted) {
+      await gamification.onTodoCompleted(todoToComplete);
+    }
 
     Toast.show({
       type: 'success',
