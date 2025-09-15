@@ -4,13 +4,16 @@
     "slug": "FoundList",
     "version": "1.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#153238"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "de.taymaerz.foundlist"
@@ -23,12 +26,13 @@
       "package": "de.taymaerz.foundlist"
     },
     "web": {
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
         "projectId": "86dee531-2d45-46bc-8caa-c57bf34ca9cc"
       }
-    }
+    },
+    "sdkVersion": "54.0.0"
   }
 }
