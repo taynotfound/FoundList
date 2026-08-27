@@ -17,8 +17,9 @@ Made on ![Arch](https://img.shields.io/badge/Arch%20Linux-1793D1?logo=arch-linux
 ## Features
 
 - **Swipe to Resolve / Delete** 
-- **Multiple Color Palettes**
-- **Priorities**
+- **Reminders and recurring tasks**
+- **Priorities, categories, and search**
+- **Optional gentle themes, without points or streak pressure**
 
 ## Built With
 
@@ -59,6 +60,9 @@ To generate an APK, run the following command:
 ```bash
 eas build --platform android --local --profile preview
 ```
+
+Every push also starts the [Android APK workflow](https://github.com/taynotfound/FoundList/actions/workflows/android-apk.yml).
+The workflow needs an `EXPO_TOKEN` repository secret and publishes the APK as a downloadable artifact.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
