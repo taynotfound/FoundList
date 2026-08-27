@@ -26,14 +26,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install EAS CLI
+        run: npm install --global eas-cli
+
       - name: Build APK with EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-      - run: eas build --platform android --profile preview --non-interactive --wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive --wait
 
       - name: Download APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build:download --platform android --profile preview --latest --output ./FoundList-preview.apk
 
       - name: Upload APK artifact
