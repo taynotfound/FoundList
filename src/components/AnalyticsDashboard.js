@@ -11,7 +11,6 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTodos } from '../contexts/TodoContext';
-import { useGamification } from '../contexts/GamificationContext';
 import { CATEGORIES } from './CategorySelector';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -19,7 +18,6 @@ const { width: screenWidth } = Dimensions.get('window');
 const AnalyticsDashboard = ({ visible, onClose }) => {
   const { theme } = useTheme();
   const { todos, completedTodos } = useTodos();
-  const { stats } = useGamification();
   const [selectedPeriod, setSelectedPeriod] = useState('week'); // week, month, year, all
 
   // Calculate analytics data
@@ -339,20 +337,7 @@ const AnalyticsDashboard = ({ visible, onClose }) => {
               icon="check-circle"
               color="#3B82F6"
             />
-            <StatCard
-              title="Current Streak"
-              value={`${stats.currentStreak} days`}
-              subtitle={`Best: ${stats.longestStreak}`}
-              icon="local-fire-department"
-              color="#F59E0B"
-            />
-            <StatCard
-              title="Total Points"
-              value={stats.totalPoints}
-              subtitle={`Level ${stats.level}`}
-              icon="stars"
-              color="#8B5CF6"
-            />
+
           </View>
 
           {/* Priority Breakdown */}
