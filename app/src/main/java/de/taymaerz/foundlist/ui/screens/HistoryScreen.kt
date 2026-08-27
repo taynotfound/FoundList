@@ -19,7 +19,7 @@ fun HistoryScreen(repo: TodoRepository, outerPadding: PaddingValues) {
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        modifier = Modifier.padding(outerPadding),
+        modifier = Modifier.padding(bottom = outerPadding.calculateBottomPadding()),
         topBar = { TopAppBar(title = { Text("History") }) },
     ) { padding ->
         if (todos.isEmpty()) {

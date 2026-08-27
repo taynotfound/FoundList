@@ -26,7 +26,7 @@ fun SettingsScreen(repo: TodoRepository, outerPadding: PaddingValues) {
     var confirmClear by remember { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier.padding(outerPadding),
+        modifier = Modifier.padding(bottom = outerPadding.calculateBottomPadding()),
         topBar = { TopAppBar(title = { Text("Settings") }) },
     ) { padding ->
         Column(Modifier.padding(padding)) {

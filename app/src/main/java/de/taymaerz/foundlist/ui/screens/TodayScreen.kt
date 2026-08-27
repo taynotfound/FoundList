@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 fun TodayScreen(repo: TodoRepository, outerPadding: PaddingValues, onEdit: (Long) -> Unit) {
     val todos by repo.open.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
     var query by remember { mutableStateOf("") }
 
     val filtered = if (query.isBlank()) todos else todos.filter {
@@ -28,8 +29,9 @@ fun TodayScreen(repo: TodoRepository, outerPadding: PaddingValues, onEdit: (Long
     }
 
     Scaffold(
-        modifier = Modifier.padding(outerPadding),
+        modifier = Modifier.padding(bottom = outerPadding.calculateBottomPadding()),
         topBar = { TopAppBar(title = { Text("Today") }) },
+        snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { onEdit(0L) },
@@ -64,7 +66,11 @@ fun TodayScreen(repo: TodoRepository, outerPadding: PaddingValues, onEdit: (Long
                     items(filtered, key = { it.id }) { todo ->
                         TodoCard(
                             todo = todo,
-                            onToggle = { scope.launch { repo.setDone(todo, !todo.done) } },
+                            onToggle = { scope.launch {
+                                val wasOpen = !todo.done
+                                repo.setDone(todo, wasOpen)
+                                if (wasOpen) snackbar.showSnackbar(repo.completionMessage())
+                            } },
                             onClick = { onEdit(todo.id) },
                             onDelete = { scope.launch { repo.delete(todo) } },
                         )
