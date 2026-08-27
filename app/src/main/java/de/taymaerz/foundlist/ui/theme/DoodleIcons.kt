@@ -1,208 +1,211 @@
 package de.taymaerz.foundlist.ui.theme
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
 /**
- * Hand-drawn doodle icon set, same wobbly-ink style as the app logo.
- * All 24x24, stroke-based, currentColor via tint.
+ * Hand-drawn doodle icons. Rules of the sketchbook:
+ * - nothing is straight, every line bows or wobbles
+ * - key strokes get a second lighter "pencil pass" slightly offset
+ * - ticks overshoot, boxes sag, circles are lumpy
  */
 object DoodleIcons {
 
-    private fun doodle(name: String, builder: androidx.compose.ui.graphics.vector.ImageVector.Builder.() -> Unit): ImageVector =
+    private fun icon(name: String, builder: ImageVector.Builder.() -> Unit): ImageVector =
         ImageVector.Builder(
             name = name, defaultWidth = 24.dp, defaultHeight = 24.dp,
             viewportWidth = 24f, viewportHeight = 24f,
         ).apply(builder).build()
 
-    private fun ImageVector.Builder.stroke(width: Float = 1.8f, data: String) {
+    /** main ink stroke */
+    private fun ImageVector.Builder.ink(width: Float = 2.1f, data: String) {
         addPath(
-            pathData = androidx.compose.ui.graphics.vector.addPathNodes(data),
+            pathData = addPathNodes(data),
             stroke = SolidColor(Color.Black), strokeLineWidth = width,
             strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round,
             fill = null, pathFillType = PathFillType.NonZero,
         )
     }
 
-    /** wobbly checkbox with overshooting tick (list/today) */
+    /** faint second pencil pass - the "went over it again" effect */
+    private fun ImageVector.Builder.ghost(data: String) {
+        addPath(
+            pathData = addPathNodes(data),
+            stroke = SolidColor(Color.Black.copy(alpha = 0.35f)), strokeLineWidth = 1.1f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round,
+            fill = null, pathFillType = PathFillType.NonZero,
+        )
+    }
+
+    /** saggy checkbox, tick shoots way past the corner */
     val List: ImageVector by lazy {
-        doodle("DoodleList") {
-            stroke(1.8f, "M5.2,4.4 Q4.8,7.2 5.1,7.7 Q7.8,8 8.2,7.6 Q8.5,4.9 8.1,4.5 Q5.6,4.2 5.2,4.4 Z")
-            stroke(1.8f, "M5.5,6 L6.6,7.4 Q8,5 9.6,3.8")
-            stroke(2f, "M11.5,6 Q15,5.7 18.8,6")
-            stroke(1.8f, "M5.3,11.4 Q4.9,14.2 5.2,14.7 Q7.9,15 8.3,14.6 Q8.6,11.9 8.2,11.5 Q5.7,11.2 5.3,11.4 Z")
-            stroke(1.8f, "M5.6,13 L6.7,14.4 Q8.1,12 9.7,10.8")
-            stroke(2f, "M11.6,13 Q15.1,12.7 18.9,13")
-            stroke(1.8f, "M5.4,18.4 Q5,21.2 5.3,21.7 Q8,22 8.4,21.6 Q8.7,18.9 8.3,18.5 Q5.8,18.2 5.4,18.4 Z")
-            stroke(2f, "M11.7,20 Q15.2,19.7 19,20")
+        icon("DoodleList") {
+            ink(data = "M5.6,6.2 C4.9,9.4 5.0,14.2 5.7,17.9 C9.1,18.7 13.9,18.5 17.6,17.8 C18.4,14.3 18.2,9.6 17.7,6.0 C14.1,5.3 8.9,5.5 5.6,6.2 Z")
+            ghost("M5.9,6.6 C5.3,9.6 5.4,14.0 6.0,17.5")
+            ink(2.4f, "M7.4,11.6 C9.1,13.2 10.2,14.7 11.0,16.1 C13.0,12.0 16.4,7.0 21.6,2.6")
+            ghost("M8.0,12.2 C9.4,13.6 10.3,14.8 11.0,15.8")
         }
     }
 
-    /** wobbly clock (history) */
+    /** lumpy clock, hands not quite meeting the center */
     val History: ImageVector by lazy {
-        doodle("DoodleHistory") {
-            stroke(1.8f, "M12,3.6 Q17.5,3.2 20.2,8 Q22.4,12.6 19.4,17 Q16.2,21.2 11.2,20.4 Q6.4,19.6 4.4,15.2 Q2.6,10.6 5.6,6.8 Q8.2,3.9 12,3.6 Z")
-            stroke(1.8f, "M12,7.5 Q11.8,10.2 12.1,12.3 Q13.9,13.5 15.6,14.2")
+        icon("DoodleHistory") {
+            ink(data = "M12.4,4.2 C7.6,3.8 4.3,7.6 4.5,12.1 C4.7,16.7 8.2,20.1 12.3,19.9 C16.7,19.7 19.8,16.2 19.6,11.7 C19.4,7.4 16.5,4.5 12.4,4.2 Z")
+            ghost("M12.2,4.7 C8.1,4.4 5.0,7.9 5.1,12.0")
+            ink(2.0f, "M12.1,7.8 C12.0,9.6 11.9,11.2 12.2,12.5 C13.4,13.3 14.6,14.0 15.8,14.5")
         }
     }
 
-    /** wobbly gear (settings) */
+    /** gear that looks chewed */
     val Settings: ImageVector by lazy {
-        doodle("DoodleSettings") {
-            stroke(1.8f, "M12,8.6 Q14.4,8.4 15.3,10.4 Q16.1,12.4 14.6,14 Q13,15.5 11,14.7 Q9.1,13.8 9.2,11.8 Q9.4,9 12,8.6 Z")
-            stroke(1.6f, "M12,3.5 L12,6.2 M12,17.8 L12,20.5 M3.8,12 L6.5,12 M17.5,12 L20.2,12 M6.2,6.2 L8.1,8.1 M15.9,15.9 L17.8,17.8 M17.8,6.2 L15.9,8.1 M8.1,15.9 L6.2,17.8")
+        icon("DoodleSettings") {
+            ink(data = "M10.4,4.4 L13.8,4.2 L14.4,6.4 C15.2,6.7 15.8,7.1 16.5,7.7 L18.7,7.0 L20.3,9.9 L18.7,11.4 C18.8,12.2 18.8,12.9 18.6,13.7 L20.2,15.3 L18.4,18.1 L16.2,17.4 C15.6,18.0 14.9,18.4 14.1,18.7 L13.6,21.0 L10.2,21.0 L9.8,18.7 C9.0,18.4 8.3,18.0 7.7,17.4 L5.4,18.0 L3.8,15.1 L5.5,13.6 C5.4,12.8 5.4,12.1 5.5,11.3 L3.9,9.8 L5.7,7.0 L7.9,7.7 C8.5,7.2 9.2,6.7 9.9,6.5 Z")
+            ink(2.0f, "M12.1,9.7 C10.5,9.8 9.6,11.0 9.7,12.4 C9.8,13.8 11.0,14.8 12.3,14.7 C13.7,14.6 14.7,13.4 14.6,12.0 C14.5,10.7 13.4,9.6 12.1,9.7 Z")
+            ghost("M12.0,10.3 C11.0,10.4 10.3,11.2 10.4,12.2")
         }
     }
 
-    /** plus (add) */
+    /** plus drawn twice because the first one wasn't committed enough */
     val Add: ImageVector by lazy {
-        doodle("DoodleAdd") {
-            stroke(2.2f, "M12,4.5 Q11.7,12 12.1,19.5")
-            stroke(2.2f, "M4.5,12 Q12,11.7 19.5,12.1")
+        icon("DoodleAdd") {
+            ink(2.6f, "M12.2,4.6 C11.8,8.0 11.9,10.4 12.0,12.2 C12.0,14.4 12.1,16.6 12.3,19.6")
+            ink(2.6f, "M4.6,12.3 C8.2,11.7 10.6,11.8 12.4,12.0 C14.6,12.1 16.8,12.0 19.6,11.8")
+            ghost("M12.0,5.4 C11.7,8.4 11.8,10.8 11.9,12.4")
+            ghost("M5.4,12.1 C8.4,11.8 10.8,11.9 12.4,12.1")
         }
     }
 
-    /** wobbly trash can (delete) */
-    val Delete: ImageVector by lazy {
-        doodle("DoodleDelete") {
-            stroke(1.8f, "M6,7 Q6.5,14 6.9,19 Q7,20.3 8.3,20.3 Q12,20.6 15.7,20.3 Q17,20.3 17.1,19 Q17.5,14 18,7")
-            stroke(1.8f, "M4.2,6.6 Q12,6 19.8,6.6")
-            stroke(1.8f, "M9.4,6.2 Q9.4,4.4 10.4,4.1 Q12,3.8 13.6,4.1 Q14.6,4.4 14.6,6.2")
-            stroke(1.6f, "M9.9,9.5 Q10,13.5 10.2,17 M14.1,9.5 Q14,13.5 13.8,17")
-        }
-    }
-
-    /** wobbly bell (notifications) */
-    val Bell: ImageVector by lazy {
-        doodle("DoodleBell") {
-            stroke(1.8f, "M12,4 Q16.4,4.2 17.2,8.4 Q17.7,11.4 18.4,13.6 Q19,15.4 20,16.4 Q13,17.6 4,16.4 Q5,15.4 5.6,13.6 Q6.3,11.4 6.8,8.4 Q7.6,4.2 12,4 Z")
-            stroke(1.8f, "M10,19 Q11,20.6 12,20.6 Q13,20.6 14,19")
-        }
-    }
-
-    /** broom (clear completed) */
-    val Sweep: ImageVector by lazy {
-        doodle("DoodleSweep") {
-            stroke(1.9f, "M17.5,4 Q13.8,8.2 11.2,11.5")
-            stroke(1.8f, "M11.2,11.5 Q8,12.6 6.4,15.2 Q5,17.6 4.6,19.8 Q7.4,20 10.2,19 Q13.2,17.8 13.8,14.2 Q12.6,12.4 11.2,11.5 Z")
-            stroke(1.4f, "M7.5,15.5 Q7.2,17.5 6.6,19 M10.3,14.6 Q10.2,16.8 9.6,18.8")
-        }
-    }
-
-    /** code brackets (source) */
-    val Code: ImageVector by lazy {
-        doodle("DoodleCode") {
-            stroke(1.9f, "M8.5,6.5 Q5.5,9.2 4.2,12 Q5.5,14.8 8.5,17.5")
-            stroke(1.9f, "M15.5,6.5 Q18.5,9.2 19.8,12 Q18.5,14.8 15.5,17.5")
-        }
-    }
-
-    /** heart (hp/gamification) */
-    val Heart: ImageVector by lazy {
-        doodle("DoodleHeart") {
-            stroke(1.9f, "M12,20 Q6,15.5 4.4,11.6 Q3,7.8 6,5.8 Q9,4 12,7.4 Q15,4 18,5.8 Q21,7.8 19.6,11.6 Q18,15.5 12,20 Z")
-        }
-    }
-
-    /** sparkle (encourage/milestone) */
-    val Sparkle: ImageVector by lazy {
-        doodle("DoodleSparkle") {
-            stroke(1.9f, "M12,4 Q12.6,9 13.4,10.6 Q15,11.4 20,12 Q15,12.6 13.4,13.4 Q12.6,15 12,20 Q11.4,15 10.6,13.4 Q9,12.6 4,12 Q9,11.4 10.6,10.6 Q11.4,9 12,4 Z")
-        }
-    }
-
-    /** lightning (energy tag) */
-    val Energy: ImageVector by lazy {
-        doodle("DoodleEnergy") {
-            stroke(1.9f, "M13.5,3.5 Q9.5,9 7.5,13 L11.5,13 Q10.5,17 10,20.5 Q14.5,15 16.5,11 L12.5,11 Q13,7 13.5,3.5 Z")
-        }
-    }
-
-    /** calendar page (due) */
-    val Calendar: ImageVector by lazy {
-        doodle("DoodleCalendar") {
-            stroke(1.8f, "M5,6.5 Q12,5.9 19,6.5 Q19.6,13 19,19 Q12,19.6 5,19 Q4.4,13 5,6.5 Z")
-            stroke(1.8f, "M5,10.4 Q12,9.9 19,10.4")
-            stroke(1.8f, "M8.5,4.4 L8.5,7.4 M15.5,4.4 L15.5,7.4")
-        }
-    }
-
-    /** clock face (time picker) */
-    val Clock: ImageVector by lazy {
-        doodle("DoodleClock") {
-            stroke(1.8f, "M12,4.2 Q16.8,4 19,8.2 Q20.8,12.2 18.4,15.8 Q15.8,19.6 11.4,19 Q7.2,18.4 5.4,14.6 Q3.8,10.6 6.4,7.2 Q8.6,4.4 12,4.2 Z")
-            stroke(1.8f, "M12,8 L12,12.2 L15,14")
-        }
-    }
-
-    /** repeat arrows (recurrence) */
-    val Repeat: ImageVector by lazy {
-        doodle("DoodleRepeat") {
-            stroke(1.8f, "M6,9.5 Q6.4,6.7 9,6.5 Q13,6.2 17,6.5 M17,6.5 L15,4.5 M17,6.5 L15,8.5")
-            stroke(1.8f, "M18,14.5 Q17.6,17.3 15,17.5 Q11,17.8 7,17.5 M7,17.5 L9,15.5 M7,17.5 L9,19.5")
-        }
-    }
-
-    /** flower (garden mode) */
-    val Flower: ImageVector by lazy {
-        doodle("DoodleFlower") {
-            stroke(1.7f, "M12,10 Q10.4,6.4 12,4.6 Q13.6,6.4 12,10 Z M12,10 Q15.6,8.4 17.4,10 Q15.6,11.6 12,10 Z M12,10 Q13.6,13.6 12,15.4 Q10.4,13.6 12,10 Z M12,10 Q8.4,11.6 6.6,10 Q8.4,8.4 12,10 Z")
-            stroke(1.8f, "M12,15 Q11.8,18 12,20.5")
-        }
-    }
-
-    /** timer (focus) */
-    val Timer: ImageVector by lazy {
-        doodle("DoodleTimer") {
-            stroke(1.8f, "M12,6.2 Q16.4,6 18.4,9.8 Q20.2,13.6 17.8,17 Q15.2,20.4 11.2,19.6 Q7.4,18.8 6,15.2 Q4.8,11.4 7.4,8.4 Q9.4,6.3 12,6.2 Z")
-            stroke(1.8f, "M12,9.5 L12,13 L14.4,14.4")
-            stroke(1.9f, "M10,3.6 Q12,3.2 14,3.6")
-        }
-    }
-
-    /** bar chart (stats) */
-    val Stats: ImageVector by lazy {
-        doodle("DoodleStats") {
-            stroke(1.9f, "M5.5,19.5 Q5.4,16 5.7,13.4 M10.5,19.5 Q10.3,12 10.7,7 M15.5,19.5 Q15.4,14.5 15.7,10.5 M20,20 Q12,20.4 4,20")
-        }
-    }
-
-    /** arrow back */
+    /** arrow that curls back like a scribble */
     val Back: ImageVector by lazy {
-        doodle("DoodleBack") {
-            stroke(2f, "M19,12 Q12,11.7 5.5,12.1 M5.5,12.1 L10.5,7 M5.5,12.1 L10.5,17")
+        icon("DoodleBack") {
+            ink(2.2f, "M19.4,12.3 C15.0,11.7 10.6,11.8 6.4,12.2")
+            ink(2.2f, "M11.2,5.8 C8.8,7.8 6.8,9.8 5.2,12.1 C6.9,14.2 8.9,16.3 11.4,18.3")
+            ghost("M18.6,12.1 C14.8,11.8 11.2,11.9 7.6,12.2")
         }
     }
 
-    /** floppy-ish save */
+    /** delete: crossed-out scribble, not a bin */
+    val Delete: ImageVector by lazy {
+        icon("DoodleDelete") {
+            ink(2.2f, "M6.2,6.6 C10.2,10.2 13.8,13.8 17.6,17.8")
+            ink(2.2f, "M17.8,6.2 C13.6,10.4 10.0,14.0 6.4,17.6")
+            ghost("M7.0,7.4 C10.6,10.8 13.6,13.8 16.8,17.0")
+        }
+    }
+
+    /** calendar with a scribbled-in day */
+    val Calendar: ImageVector by lazy {
+        icon("DoodleCalendar") {
+            ink(data = "M5.0,7.6 C4.6,11.2 4.8,15.0 5.3,18.4 C9.4,19.1 14.8,18.9 19.0,18.3 C19.5,14.7 19.4,10.8 19.0,7.3 C14.5,6.7 9.3,6.9 5.0,7.6 Z")
+            ink(2.2f, "M8.3,4.4 C8.2,6.2 8.3,7.6 8.5,9.2")
+            ink(2.2f, "M15.7,4.2 C15.7,6.0 15.8,7.4 16.0,9.0")
+            ghost("M5.4,11.0 C10.0,10.6 14.6,10.6 18.8,10.9")
+            ink(2.4f, "M8.8,13.6 C9.8,14.5 10.4,15.3 10.9,16.0 C11.9,14.2 13.4,12.3 15.4,10.6")
+        }
+    }
+
+    /** loopy repeat arrows */
+    val Repeat: ImageVector by lazy {
+        icon("DoodleRepeat") {
+            ink(2.0f, "M6.8,9.4 C7.6,6.9 9.7,5.4 12.3,5.5 C15.4,5.6 17.8,7.8 18.2,10.8 L16.4,9.6 M18.2,10.8 L19.8,9.2")
+            ink(2.0f, "M17.4,14.6 C16.6,17.1 14.4,18.6 11.8,18.5 C8.7,18.4 6.3,16.1 5.9,13.1 L7.7,14.3 M5.9,13.1 L4.3,14.7")
+        }
+    }
+
+    /** heart drawn fast, lopsided */
+    val Heart: ImageVector by lazy {
+        icon("DoodleHeart") {
+            ink(2.1f, "M12.1,19.8 C8.7,16.9 5.0,13.7 4.5,10.0 C4.1,7.2 6.2,5.0 8.6,5.5 C10.3,5.8 11.4,7.2 12.0,8.6 C12.8,7.1 14.2,5.6 16.0,5.4 C18.4,5.2 20.2,7.4 19.7,10.3 C19.1,13.9 15.4,16.9 12.1,19.8 Z")
+            ghost("M11.9,18.6 C9.0,16.1 6.0,13.3 5.5,10.2")
+        }
+    }
+
+    /** wonky sparkle/star */
+    val Sparkle: ImageVector by lazy {
+        icon("DoodleSparkle") {
+            ink(2.2f, "M12.1,3.6 C12.5,7.0 12.5,8.6 12.2,12.1 C12.0,15.4 12.1,17.0 12.2,20.5")
+            ink(2.2f, "M3.7,12.2 C7.2,11.8 8.7,11.9 12.2,12.1 C15.5,12.2 17.1,12.2 20.4,11.9")
+            ink(1.6f, "M7.0,7.1 C7.9,8.0 8.5,8.6 9.3,9.5")
+            ink(1.6f, "M14.9,14.8 C15.8,15.7 16.4,16.3 17.2,17.2")
+            ink(1.6f, "M17.1,7.0 C16.2,7.9 15.6,8.5 14.7,9.4")
+            ink(1.6f, "M9.2,14.9 C8.3,15.8 7.7,16.4 6.8,17.3")
+        }
+    }
+
+    /** lightning bolt, jittery */
+    val Energy: ImageVector by lazy {
+        icon("DoodleEnergy") {
+            ink(2.1f, "M13.6,3.8 C11.2,7.0 9.4,9.6 7.6,12.4 L11.4,12.7 C10.6,15.4 10.0,17.7 9.6,20.3 C12.4,16.9 14.6,14.0 16.6,11.2 L12.7,10.9 C13.1,8.5 13.4,6.2 13.6,3.8 Z")
+        }
+    }
+
+    /** hourglass timer, pinched */
+    val Timer: ImageVector by lazy {
+        icon("DoodleTimer") {
+            ink(2.0f, "M7.2,4.6 C10.4,4.3 13.8,4.3 16.9,4.7 C16.6,8.0 14.8,10.2 12.2,12.0 C14.9,13.9 16.7,16.1 16.8,19.4 C13.6,19.8 10.2,19.8 7.1,19.3 C7.3,16.0 9.1,13.8 11.8,12.0 C9.2,10.1 7.4,7.9 7.2,4.6 Z")
+            ghost("M8.0,5.4 C8.4,7.9 9.8,9.8 11.8,11.4")
+        }
+    }
+
+    /** bar chart, bars lean like they're tired */
+    val Stats: ImageVector by lazy {
+        icon("DoodleStats") {
+            ink(2.3f, "M6.2,19.0 C6.3,16.6 6.3,14.6 6.1,12.4")
+            ink(2.3f, "M11.9,19.2 C12.2,15.0 12.2,10.8 11.8,6.2")
+            ink(2.3f, "M17.6,19.0 C17.9,16.0 17.9,12.6 17.5,9.4")
+            ghost("M4.4,20.2 C9.6,20.6 14.8,20.6 20.0,20.1")
+        }
+    }
+
+    /** floppy disk, corners chewed */
     val Save: ImageVector by lazy {
-        doodle("DoodleSave") {
-            stroke(1.8f, "M6,4.6 Q11,4.2 15.6,4.5 L19.4,8.3 Q19.8,13.6 19.4,19 Q12,19.6 4.8,19 Q4.3,12 4.7,5.6 Q4.8,4.7 6,4.6 Z")
-            stroke(1.6f, "M8,4.8 Q7.9,7.4 8.2,8.6 Q11.6,8.9 14.8,8.6 Q15,7 14.9,4.9")
-            stroke(1.6f, "M7.6,13 Q7.5,16.4 7.8,18.8 M7.7,13.2 Q12,12.8 16.3,13.1 Q16.5,16 16.3,18.9")
+        icon("DoodleSave") {
+            ink(data = "M5.4,5.8 C5.0,9.8 5.1,14.0 5.5,18.2 C9.6,18.8 14.2,18.7 18.4,18.1 C18.8,14.4 18.8,10.6 18.4,7.6 L16.2,5.3 C12.6,5.0 8.9,5.2 5.4,5.8 Z")
+            ink(1.8f, "M8.6,5.6 C8.5,7.2 8.6,8.2 8.8,9.6 C10.9,9.9 12.9,9.9 14.9,9.6 C15.1,8.2 15.1,7.0 15.0,5.5")
+            ghost("M8.4,13.2 C10.9,12.9 13.3,12.9 15.7,13.1")
         }
     }
 
-    /** share arrow */
-    val Share: ImageVector by lazy {
-        doodle("DoodleShare") {
-            stroke(1.8f, "M15.5,5.5 Q9,9 8,12 Q9,15 15.5,18.5")
-            stroke(1.7f, "M18,4 Q16.6,4.9 16.4,6.4 Q17.6,7.5 19,7 Q19.8,5.4 18,4 Z M18,17 Q16.6,17.9 16.4,19.4 Q17.6,20.5 19,20 Q19.8,18.4 18,17 Z M6,10.4 Q4.6,11.3 4.4,12.8 Q5.6,13.9 7,13.4 Q7.8,11.8 6,10.4 Z")
-        }
-    }
-
-    /** download/import arrow into tray */
+    /** arrow diving into a box */
     val Import: ImageVector by lazy {
-        doodle("DoodleImport") {
-            stroke(1.9f, "M12,4 Q11.8,9.5 12.1,14 M12.1,14 L8.5,10.8 M12.1,14 L15.5,10.8")
-            stroke(1.8f, "M4.5,16.5 Q4.6,19.5 6,19.7 Q12,20.2 18,19.7 Q19.4,19.5 19.5,16.5")
+        icon("DoodleImport") {
+            ink(2.2f, "M12.1,3.8 C11.8,7.4 11.9,10.2 12.1,13.6")
+            ink(2.2f, "M8.4,10.4 C9.8,11.9 11.0,13.0 12.1,14.0 C13.3,12.9 14.5,11.7 15.8,10.2")
+            ink(2.0f, "M5.2,14.8 C5.0,16.8 5.1,18.0 5.4,19.6 C9.7,20.2 14.3,20.1 18.6,19.5 C18.9,17.9 18.9,16.6 18.8,14.6")
+        }
+    }
+
+    /** broom mid-sweep with dust */
+    val Sweep: ImageVector by lazy {
+        icon("DoodleSweep") {
+            ink(2.1f, "M18.6,4.6 C15.4,7.6 12.8,10.2 10.4,12.8")
+            ink(2.0f, "M10.6,12.4 C8.4,13.2 6.9,14.9 6.2,17.6 C8.9,18.5 11.4,18.2 13.4,16.4 C13.0,14.8 12.0,13.4 10.6,12.4 Z")
+            ghost("M7.4,15.0 C8.4,16.4 9.8,17.3 11.6,17.4")
+            ink(1.5f, "M4.4,20.6 L5.0,20.5 M7.8,21.0 L8.4,20.9 M11.6,20.8 L12.2,20.7")
+        }
+    }
+
+    /** bell swinging, off balance */
+    val Bell: ImageVector by lazy {
+        icon("DoodleBell") {
+            ink(2.0f, "M12.3,4.3 C8.9,4.6 7.1,7.1 7.0,10.1 C6.9,12.9 6.3,14.8 4.9,16.6 C9.5,17.4 14.9,17.3 19.3,16.4 C17.8,14.6 17.5,12.8 17.4,10.0 C17.3,6.9 15.5,4.5 12.3,4.3 Z")
+            ghost("M11.9,4.9 C9.3,5.2 7.9,7.3 7.8,9.9")
+            ink(2.0f, "M10.3,19.3 C11.3,20.5 13.1,20.4 14.0,19.2")
+        }
+    }
+
+    /** angle brackets, hastily scratched */
+    val Code: ImageVector by lazy {
+        icon("DoodleCode") {
+            ink(2.2f, "M8.6,7.0 C6.8,8.7 5.4,10.4 4.2,12.2 C5.6,13.9 7.0,15.4 8.8,17.0")
+            ink(2.2f, "M15.4,7.2 C17.2,8.9 18.6,10.6 19.8,12.4 C18.4,14.1 17.0,15.6 15.2,17.2")
+            ghost("M12.9,5.4 C12.0,9.8 11.4,14.2 11.0,18.8")
         }
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.taymaerz.foundlist.data.Energy
@@ -146,6 +147,7 @@ fun TodayScreen(repo: TodoRepository, outerPadding: PaddingValues, onEdit: (Long
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TaskRow(
     todo: Todo,
@@ -155,17 +157,63 @@ private fun TaskRow(
     scope: kotlinx.coroutines.CoroutineScope,
 ) {
     val subtasks by repo.subtasks(todo.id).collectAsState(initial = emptyList())
-    TodoCard(
-        todo = todo,
-        subtaskProgress = if (subtasks.isEmpty()) null else subtasks.count { it.done } to subtasks.size,
-        onToggle = { scope.launch {
-            val wasOpen = !todo.done
-            repo.setDone(todo, wasOpen)
-            if (wasOpen) snackbar.showSnackbar(repo.completionMessage())
-        } },
-        onClick = { onEdit(todo.id) },
-        onDelete = { scope.launch { repo.delete(todo) } },
+    // gestures: swipe right = done, swipe left = delete (with undo)
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            when (value) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    scope.launch {
+                        repo.setDone(todo, true)
+                        snackbar.showSnackbar(repo.completionMessage())
+                    }
+                    false // list update removes the row; don't dismiss visually
+                }
+                SwipeToDismissBoxValue.EndToStart -> {
+                    scope.launch {
+                        repo.delete(todo)
+                        val res = snackbar.showSnackbar("Deleted \u201C${todo.title}\u201D", actionLabel = "Undo")
+                        if (res == SnackbarResult.ActionPerformed) repo.save(todo.copy(id = 0))
+                    }
+                    false
+                }
+                else -> false
+            }
+        },
+        positionalThreshold = { it * 0.45f }, // deliberate swipes only
     )
+    SwipeToDismissBox(
+        state = dismissState,
+        // artsy: every card leans a little, seeded by id - chaotic but sorted
+        modifier = Modifier.graphicsLayer { rotationZ = ((todo.id * 37) % 5 - 2) * 0.35f },
+        backgroundContent = {
+            val target = dismissState.targetValue
+            Row(
+                Modifier.fillMaxSize().padding(horizontal = 24.dp),
+                horizontalArrangement = if (target == SwipeToDismissBoxValue.StartToEnd) Arrangement.Start else Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                when (target) {
+                    SwipeToDismissBoxValue.StartToEnd ->
+                        Icon(DoodleIcons.List, "Done", tint = MaterialTheme.colorScheme.primary)
+                    SwipeToDismissBoxValue.EndToStart ->
+                        Icon(DoodleIcons.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                    else -> Unit
+                }
+            }
+        },
+    ) {
+        TodoCard(
+            todo = todo,
+            subtaskProgress = if (subtasks.isEmpty()) null else subtasks.count { it.done } to subtasks.size,
+            onToggle = { scope.launch {
+                val wasOpen = !todo.done
+                repo.setDone(todo, wasOpen)
+                if (wasOpen) snackbar.showSnackbar(repo.completionMessage())
+            } },
+            onClick = { onEdit(todo.id) },
+            onDelete = { scope.launch { repo.delete(todo) } },
+        )
+    }
 }
 
 @Composable
