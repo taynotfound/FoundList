@@ -23,11 +23,11 @@ object DoodleIcons {
         ).apply(builder).build()
 
     private fun ImageVector.Builder.stroke(width: Float = 1.8f, data: String) {
-        path(
+        addPath(
+            pathData = androidx.compose.ui.graphics.vector.addPathNodes(data),
             stroke = SolidColor(Color.Black), strokeLineWidth = width,
             strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round,
             fill = null, pathFillType = PathFillType.NonZero,
-            pathData = androidx.compose.ui.graphics.vector.addPathNodes(data),
         )
     }
 

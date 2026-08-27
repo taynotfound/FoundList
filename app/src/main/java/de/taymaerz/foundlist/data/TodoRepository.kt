@@ -14,6 +14,7 @@ class TodoRepository(private val context: Context) {
 
     fun completedSince(since: Long) = dao.completedSince(since)
     fun overdueCount() = dao.overdueCount(System.currentTimeMillis())
+    fun completedCountFlow() = dao.completedCountFlow()
     fun subtasks(todoId: Long) = dao.subtasks(todoId)
 
     suspend fun upsertSubtask(s: Subtask) = dao.upsertSubtask(s)
