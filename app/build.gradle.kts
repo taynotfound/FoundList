@@ -13,8 +13,8 @@ android {
         applicationId = "de.taymaerz.foundlist"
         minSdk = 29
         targetSdk = 35
-        versionCode = 300
-        versionName = "3.0.0"
+        versionCode = 310
+        versionName = "3.1.0"
     }
 
     buildTypes {
@@ -49,6 +49,8 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
+
+    implementation("androidx.glance:glance-appwidget:1.1.0")
 
     testImplementation("junit:junit:4.13.2")
 }

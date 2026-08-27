@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FoundList</string>
+    <string name="shortcut_new_task">New task</string>
+    <string name="widget_desc">Your open tasks at a glance</string>
 </resources>
