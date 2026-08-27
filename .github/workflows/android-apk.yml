@@ -1,0 +1,56 @@
+name: Android APK
+
+on:
+  push:
+    branches: [rewrite/native-kotlin]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Create a GitHub release with the APK"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build release APK
+        run: gradle assembleRelease
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FoundList-release
+          path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Create release
+        if: ${{ inputs.release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(grep 'versionName' app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          TAG="v${VERSION}-build.${{ github.run_number }}"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            NOTES=$(git log "$LAST_TAG"..HEAD --pretty='- %s' --no-merges)
+          else
+            NOTES=$(git log --pretty='- %s' --no-merges | head -30)
+          fi
+          cp app/build/outputs/apk/release/app-release.apk "FoundList-${TAG}.apk"
+          gh release create "$TAG" "FoundList-${TAG}.apk" \
+            --title "FoundList $TAG" \
+            --notes "$NOTES"
