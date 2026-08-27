@@ -24,4 +24,14 @@ class SmartDateTest {
     @Test fun inThreeDays() = assertEquals(day(2026, Calendar.AUGUST, 29), SmartDate.parse("in 3 days", now))
     @Test fun inTwoWeeks() = assertEquals(day(2026, Calendar.SEPTEMBER, 9), SmartDate.parse("in 2 weeks", now))
     @Test fun garbage() = assertNull(SmartDate.parse("blorbo", now))
+
+    private fun at(y: Int, m: Int, d: Int, h: Int, min: Int): Long = Calendar.getInstance().apply {
+        set(y, m, d, h, min, 0); set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    @Test fun tomorrowWithTime() = assertEquals(at(2026, Calendar.AUGUST, 27, 18, 0), SmartDate.parse("tomorrow 18:00", now))
+    @Test fun freitagAbend() = assertEquals(at(2026, Calendar.AUGUST, 28, 19, 0), SmartDate.parse("freitag abend", now))
+    @Test fun christmasPm() = assertEquals(at(2026, Calendar.DECEMBER, 24, 18, 0), SmartDate.parse("next christmas 6pm", now))
+    @Test fun bareTonight() = assertEquals(at(2026, Calendar.AUGUST, 26, 21, 0), SmartDate.parse("tonight", now))
+    @Test fun uhrTime() = assertEquals(at(2026, Calendar.AUGUST, 27, 18, 0), SmartDate.parse("morgen um 18 uhr", now))
 }

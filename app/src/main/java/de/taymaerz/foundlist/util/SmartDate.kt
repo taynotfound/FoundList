@@ -34,7 +34,48 @@ object SmartDate {
 
     private val inPattern = Regex("""^in (\d+) (day|days|tag|tagen|week|weeks|woche|wochen|month|months|monat|monaten)$""")
 
+    // trailing time: "18:00", "6pm", "6 pm", "18 uhr", or word times
+    private val timePattern = Regex("""\s+(?:at |um )?(?:(\d{1,2}):(\d{2})|(\d{1,2})\s*(pm|am|uhr))$""")
+    private val wordTimes = mapOf(
+        "morning" to 9, "früh" to 9, "morgens" to 9,
+        "noon" to 12, "mittag" to 12, "mittags" to 12,
+        "afternoon" to 15, "nachmittag" to 15, "nachmittags" to 15,
+        "evening" to 19, "abend" to 19, "abends" to 19,
+        "night" to 21, "nacht" to 21, "nachts" to 21, "tonight" to 21,
+    )
+
+    /** Parse with optional time: "tomorrow 18:00", "freitag abend", "next christmas 6pm". */
     fun parse(input: String, now: Calendar = Calendar.getInstance()): Long? {
+        var text = input.trim().lowercase()
+        var hour = -1; var minute = 0
+
+        timePattern.find(text)?.let { m ->
+            if (m.groupValues[1].isNotEmpty()) {
+                hour = m.groupValues[1].toInt(); minute = m.groupValues[2].toInt()
+            } else {
+                hour = m.groupValues[3].toInt()
+                if (m.groupValues[4] == "pm" && hour < 12) hour += 12
+            }
+            if (hour in 0..23) text = text.removeRange(m.range).trim() else hour = -1
+        }
+        if (hour < 0) {
+            val last = text.substringAfterLast(' ')
+            wordTimes[last]?.let { h ->
+                if (text.contains(' ')) { hour = h; text = text.substringBeforeLast(' ').trim() }
+            }
+        }
+        // bare "tonight"/"abend" = today at that time
+        if (hour < 0) wordTimes[text]?.let { h -> hour = h; text = "today" }
+
+        val day = parseDay(text, now) ?: return null
+        if (hour < 0) return day
+        return Calendar.getInstance().apply {
+            timeInMillis = day
+            set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, minute)
+        }.timeInMillis
+    }
+
+    private fun parseDay(input: String, now: Calendar): Long? {
         val q = input.trim().lowercase().removePrefix("next ").removePrefix("nächsten ")
             .removePrefix("nächster ").removePrefix("nächstes ").removePrefix("am ").trim()
         if (q.isEmpty()) return null
