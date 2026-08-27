@@ -16,7 +16,7 @@ Made on ![Arch](https://img.shields.io/badge/Arch%20Linux-1793D1?logo=arch-linux
 
 ## Features
 
-- **Swipe to Resolve / Delete** 
+- **One-tap resolve and delete controls** 
 - **Reminders and recurring tasks**
 - **Priorities, categories, and search**
 - **Optional gentle themes, without points or streak pressure**
