@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FoundListTheme {
-                AppRoot()
+                AppRoot(startNewTask = intent?.action == "de.taymaerz.foundlist.NEW_TASK")
             }
         }
     }
