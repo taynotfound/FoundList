@@ -13,8 +13,8 @@ android {
         applicationId = "de.taymaerz.foundlist"
         minSdk = 29
         targetSdk = 35
-        versionCode = 310
-        versionName = "3.1.0"
+        versionCode = (System.getenv("BUILD_NUMBER") ?: "310").toInt()
+        versionName = "3.1.${System.getenv("BUILD_NUMBER") ?: "0"}"
     }
 
     buildTypes {

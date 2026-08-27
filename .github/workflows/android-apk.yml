@@ -29,6 +29,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build release APK
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
         run: gradle assembleRelease
 
       - name: Upload artifact
@@ -42,8 +44,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(grep 'versionName' app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
-          TAG="v${VERSION}-build.${{ github.run_number }}"
+          VERSION="3.1.${{ github.run_number }}"
+          TAG="v${VERSION}"
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -n "$LAST_TAG" ]; then
             NOTES=$(git log "$LAST_TAG"..HEAD --pretty='- %s' --no-merges)

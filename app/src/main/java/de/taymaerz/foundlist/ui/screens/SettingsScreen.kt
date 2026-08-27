@@ -93,6 +93,27 @@ fun SettingsScreen(repo: TodoRepository, outerPadding: PaddingValues, onStats: (
             }
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            Row(
+                Modifier.fillMaxWidth().clickable {
+                    Prefs.handwritingFont.value = !Prefs.handwritingFont.value; Prefs.save(context)
+                },
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("Handwriting font", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        "The whole app in a hand-drawn script",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = Prefs.handwritingFont.value,
+                    onCheckedChange = { Prefs.handwritingFont.value = it; Prefs.save(context) },
+                )
+            }
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
             Text("Gamification", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Text(
                 "Choose how much game you want. Nothing ever punishes you.",

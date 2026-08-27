@@ -13,6 +13,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.updateAll
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.background
@@ -39,6 +40,11 @@ import de.taymaerz.foundlist.data.TodoDatabase
 
 class TodoWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = TodoWidget()
+}
+
+/** Called by the repository after every data change so the widget never goes stale. */
+suspend fun refreshTodoWidget(context: Context) {
+    TodoWidget().updateAll(context)
 }
 
 /** Doodle accent colors - one per task row, cycled. */

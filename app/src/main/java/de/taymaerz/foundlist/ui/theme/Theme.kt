@@ -43,5 +43,34 @@ fun FoundListTheme(content: @Composable () -> Unit) {
         Prefs.Palette.SUNSET -> if (dark) Sunset.second else Sunset.first
         Prefs.Palette.MONO -> if (dark) Mono.second else Mono.first
     }
-    MaterialTheme(colorScheme = colors, content = content)
+    MaterialTheme(
+        colorScheme = colors,
+        typography = if (Prefs.handwritingFont.value) HandTypography else androidx.compose.material3.Typography(),
+        content = content,
+    )
+}
+
+/** Patrick Hand everywhere when the artsy switch is on. */
+private val Hand = androidx.compose.ui.text.font.FontFamily(
+    androidx.compose.ui.text.font.Font(de.taymaerz.foundlist.R.font.patrick_hand),
+)
+
+private val HandTypography = androidx.compose.material3.Typography().let { t ->
+    androidx.compose.material3.Typography(
+        displayLarge = t.displayLarge.copy(fontFamily = Hand),
+        displayMedium = t.displayMedium.copy(fontFamily = Hand),
+        displaySmall = t.displaySmall.copy(fontFamily = Hand),
+        headlineLarge = t.headlineLarge.copy(fontFamily = Hand),
+        headlineMedium = t.headlineMedium.copy(fontFamily = Hand),
+        headlineSmall = t.headlineSmall.copy(fontFamily = Hand),
+        titleLarge = t.titleLarge.copy(fontFamily = Hand),
+        titleMedium = t.titleMedium.copy(fontFamily = Hand),
+        titleSmall = t.titleSmall.copy(fontFamily = Hand),
+        bodyLarge = t.bodyLarge.copy(fontFamily = Hand, fontSize = t.bodyLarge.fontSize * 1.05),
+        bodyMedium = t.bodyMedium.copy(fontFamily = Hand, fontSize = t.bodyMedium.fontSize * 1.05),
+        bodySmall = t.bodySmall.copy(fontFamily = Hand),
+        labelLarge = t.labelLarge.copy(fontFamily = Hand),
+        labelMedium = t.labelMedium.copy(fontFamily = Hand),
+        labelSmall = t.labelSmall.copy(fontFamily = Hand),
+    )
 }

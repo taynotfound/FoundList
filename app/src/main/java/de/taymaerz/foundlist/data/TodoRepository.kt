@@ -85,6 +85,7 @@ class TodoRepository(private val context: Context) {
         val saved = todo.copy(id = if (todo.id == 0L) id else todo.id)
         if (saved.reminderAt != null && !saved.done) Reminders.schedule(context, saved)
         else Reminders.cancel(context, saved.id)
+        refreshWidget()
         return saved.id
     }
 
@@ -107,14 +108,21 @@ class TodoRepository(private val context: Context) {
             if (done) Reminders.cancel(context, todo.id)
             else if (todo.reminderAt != null) Reminders.schedule(context, todo)
         }
+        refreshWidget()
     }
 
     suspend fun delete(todo: Todo) {
         Reminders.cancel(context, todo.id)
         dao.delete(todo)
+        refreshWidget()
     }
 
-    suspend fun clearCompleted() = dao.clearCompleted()
+    suspend fun clearCompleted() { dao.clearCompleted(); refreshWidget() }
+
+    /** Root fix for stale widget: every data mutation pokes Glance. */
+    private suspend fun refreshWidget() {
+        runCatching { de.taymaerz.foundlist.widget.refreshTodoWidget(context) }
+    }
 
     /** Encouragement line after completing a task: milestone when hit, else a varied toast. */
     suspend fun completionMessage(): String {

@@ -1,5 +1,8 @@
 package de.taymaerz.foundlist.ui.screens
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -187,16 +191,45 @@ private fun TaskRow(
         modifier = Modifier.graphicsLayer { rotationZ = ((todo.id * 37) % 5 - 2) * 0.35f },
         backgroundContent = {
             val target = dismissState.targetValue
+            val engaged = target != SwipeToDismissBoxValue.Settled
+            // visual feedback: surface tints toward the action color as you pull,
+            // icon + label pop in once the swipe would trigger
+            val bg by animateColorAsState(
+                when (target) {
+                    SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primaryContainer
+                    SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                    else -> MaterialTheme.colorScheme.surface
+                },
+                label = "swipeBg",
+            )
+            val scale by animateFloatAsState(if (engaged) 1.25f else 0.8f, label = "swipeScale")
             Row(
-                Modifier.fillMaxSize().padding(horizontal = 24.dp),
+                Modifier.fillMaxSize()
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(bg)
+                    .padding(horizontal = 24.dp),
                 horizontalArrangement = if (target == SwipeToDismissBoxValue.StartToEnd) Arrangement.Start else Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 when (target) {
-                    SwipeToDismissBoxValue.StartToEnd ->
-                        Icon(DoodleIcons.List, "Done", tint = MaterialTheme.colorScheme.primary)
-                    SwipeToDismissBoxValue.EndToStart ->
-                        Icon(DoodleIcons.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                    SwipeToDismissBoxValue.StartToEnd -> {
+                        Icon(
+                            DoodleIcons.List, "Done",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text("done!", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                    SwipeToDismissBoxValue.EndToStart -> {
+                        Text("delete", color = MaterialTheme.colorScheme.onErrorContainer)
+                        Spacer(Modifier.width(10.dp))
+                        Icon(
+                            DoodleIcons.Delete, "Delete",
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
+                        )
+                    }
                     else -> Unit
                 }
             }

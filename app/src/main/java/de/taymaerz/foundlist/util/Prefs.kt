@@ -13,12 +13,14 @@ object Prefs {
     lateinit var themeMode: MutableState<ThemeMode>
     lateinit var palette: MutableState<Palette>
     lateinit var gamification: MutableState<Gamification>
+    lateinit var handwritingFont: MutableState<Boolean>
 
     fun init(context: Context) {
         val sp = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
         themeMode = mutableStateOf(ThemeMode.valueOf(sp.getString("theme", "SYSTEM")!!))
         palette = mutableStateOf(Palette.valueOf(sp.getString("palette", "DYNAMIC")!!))
         gamification = mutableStateOf(Gamification.valueOf(sp.getString("gamification", "GENTLE")!!))
+        handwritingFont = mutableStateOf(sp.getBoolean("handwriting", true))
     }
 
     fun save(context: Context) {
@@ -26,6 +28,7 @@ object Prefs {
             .putString("theme", themeMode.value.name)
             .putString("palette", palette.value.name)
             .putString("gamification", gamification.value.name)
+            .putBoolean("handwriting", handwritingFont.value)
             .apply()
     }
 }
