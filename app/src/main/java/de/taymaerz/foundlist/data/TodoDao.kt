@@ -5,6 +5,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TodoDao {
+    @Query("SELECT COUNT(*) FROM todos WHERE done = 1")
+    suspend fun completedCount(): Int
+
     @Query("SELECT * FROM todos WHERE done = 0 ORDER BY CASE WHEN dueAt IS NULL THEN 1 ELSE 0 END, dueAt ASC, priority DESC, createdAt DESC")
     fun open(): Flow<List<Todo>>
 

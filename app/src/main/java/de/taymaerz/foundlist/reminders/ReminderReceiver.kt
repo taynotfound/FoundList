@@ -20,7 +20,7 @@ class ReminderReceiver : BroadcastReceiver() {
         )
         val notif = NotificationCompat.Builder(context, Reminders.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
+            .setContentTitle(de.taymaerz.foundlist.util.Encourage.reminder(title))
             .setContentText("Tap to open FoundList")
             .setContentIntent(tap)
             .setAutoCancel(true)

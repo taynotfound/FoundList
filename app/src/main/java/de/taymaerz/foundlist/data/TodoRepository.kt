@@ -49,6 +49,13 @@ class TodoRepository(private val context: Context) {
 
     suspend fun clearCompleted() = dao.clearCompleted()
 
+    /** Encouragement line after completing a task: milestone when hit, else a varied toast. */
+    suspend fun completionMessage(): String {
+        val total = dao.completedCount()
+        return de.taymaerz.foundlist.util.Encourage.milestone(total)
+            ?: de.taymaerz.foundlist.util.Encourage.completion()
+    }
+
     private fun roll(ts: Long, r: Recurrence): Long {
         val cal = Calendar.getInstance().apply { timeInMillis = ts }
         do {
