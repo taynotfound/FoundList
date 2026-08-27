@@ -30,6 +30,7 @@ import MarkdownEditorViewer from '../components/MarkdownEditorViewer';
 import CustomDateTimePicker from '../components/DateTimePicker';
 import RecurrenceSelector from '../components/RecurrenceSelector';
 import SmartSuggestions from '../components/SmartSuggestions';
+import AppHeader from '../components/AppHeader';
 
 const CurrentTodosScreen = () => {
   const { theme } = useTheme();
@@ -132,6 +133,7 @@ const CurrentTodosScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <AppHeader title="Today" />
       {/* Search Bar */}
       <SearchBar
         onSearch={setSearchQuery}
@@ -478,7 +480,6 @@ const CurrentTodosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
   },
   statsContainer: {
     paddingHorizontal: 16,

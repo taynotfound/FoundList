@@ -142,6 +142,7 @@ const AppNavigator = () => {
         component={CurrentTodosScreen}
         options={{
           title: 'Current Todos',
+          headerShown: false,
         }}
       />
       <Tab.Screen 
