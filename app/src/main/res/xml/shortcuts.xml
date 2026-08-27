@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_task"
+        android:enabled="true"
+        android:icon="@drawable/ic_notification"
+        android:shortcutShortLabel="@string/shortcut_new_task">
+        <intent
+            android:action="de.taymaerz.foundlist.NEW_TASK"
+            android:targetPackage="de.taymaerz.foundlist"
+            android:targetClass="de.taymaerz.foundlist.MainActivity" />
+    </shortcut>
+</shortcuts>
