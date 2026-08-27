@@ -42,12 +42,10 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           eas build --platform android --profile preview --non-interactive --wait --json > eas-build.json
-          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('eas-build.json','utf8')); const build=Array.isArray(data)?data[0]:data; if(!build?.id) throw new Error('EAS did not return a build id'); fs.writeFileSync('eas-build-id', build.id);"
+          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('eas-build.json','utf8')); const build=Array.isArray(data)?data[0]:data; const url=build?.artifacts?.buildUrl; if(!url) throw new Error('No buildUrl in EAS output: '+JSON.stringify(build).slice(0,500)); fs.writeFileSync('apk-url', url);"
 
       - name: Download APK
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build:download --id "$(cat eas-build-id)" --output ./FoundList-preview.apk
+        run: curl -fL --retry 3 -o FoundList-preview.apk "$(cat apk-url)"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
