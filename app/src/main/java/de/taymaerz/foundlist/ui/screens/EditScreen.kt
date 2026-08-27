@@ -98,6 +98,28 @@ fun EditScreen(repo: TodoRepository, id: Long, onDone: () -> Unit) {
                 }
             }
 
+            // smart date: type "next christmas", "in 3 days", "freitag"...
+            var smartText by remember { mutableStateOf("") }
+            val smartParsed = remember(smartText) { de.taymaerz.foundlist.util.SmartDate.parse(smartText) }
+            OutlinedTextField(
+                value = smartText,
+                onValueChange = { smartText = it },
+                label = { Text("Due (type it: \"next christmas\", \"in 3 days\", \"freitag\"…)") },
+                singleLine = true,
+                supportingText = smartParsed?.let {
+                    { Text("→ " + DateFormat.format("EEE, dd MMM yyyy", it)) }
+                },
+                trailingIcon = smartParsed?.let {
+                    {
+                        TextButton(onClick = {
+                            todo = todo.copy(dueAt = it)
+                            smartText = ""
+                        }) { Text("Set") }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { showDatePicker = true }, Modifier.weight(1f)) {
                     Text(todo.dueAt?.let { DateFormat.getDateFormat(androidx.compose.ui.platform.LocalContext.current.let { c -> c }).format(it) } ?: "Due date")
