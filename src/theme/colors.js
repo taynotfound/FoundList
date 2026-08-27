@@ -1,5 +1,6 @@
-// Material You-inspired token system (static palette — no dynamic color extraction)
-// ponytail: static tokens only; upgrade to react-native-material-you if dynamic color is needed
+// Material You-inspired token system.
+// Dynamic (wallpaper) color is applied by ThemeContext on Android 12+;
+// these static tokens are the fallback for Android 10/11, iOS, and web.
 
 export const accentColors = {
   blue: '#6D5EF5',

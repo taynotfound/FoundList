@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Appearance } from 'react-native';
+import { Appearance, Platform } from 'react-native';
+import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { createTheme, accentColors } from '../theme/colors';
 import { THEME_PRESETS, getThemeById } from '../theme/themePresets';
 
@@ -19,7 +20,11 @@ export const ThemeProvider = ({ children }) => {
   const [themeMode, setThemeMode] = useState('auto'); // 'light', 'dark', 'auto'
   const [customThemeId, setCustomThemeId] = useState(null);
   const [customColors, setCustomColors] = useState(null);
+  const [useDynamicColor, setUseDynamicColor] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  // Material You wallpaper palette on Android 12+; library falls back to a
+  // generated palette elsewhere. We only use it when the OS actually provides it.
+  const { theme: m3Theme } = useMaterial3Theme({ fallbackSourceColor: accentColors.blue });
 
   // Determine current theme based on mode and system preference
   const getEffectiveTheme = () => {
@@ -45,7 +50,15 @@ export const ThemeProvider = ({ children }) => {
         }
       };
     }
-    return createTheme(accentColor, getEffectiveTheme());
+    const mode = getEffectiveTheme();
+    // Dynamic color: Android 12+ (API 31) exposes the wallpaper palette.
+    // Android 10/11 keeps the calm static palette.
+    const dynamicAvailable =
+      Platform.OS === 'android' && Number(Platform.Version) >= 31 && m3Theme?.[mode]?.primary;
+    const effectiveAccent = useDynamicColor && dynamicAvailable
+      ? m3Theme[mode].primary
+      : accentColor;
+    return createTheme(effectiveAccent, mode);
   };
 
   const theme = getCurrentTheme();
@@ -66,12 +79,17 @@ export const ThemeProvider = ({ children }) => {
 
   const loadSettings = async () => {
     try {
-      const [savedAccentColor, savedThemeMode, savedCustomThemeId, savedCustomColors] = await Promise.all([
+      const [savedAccentColor, savedThemeMode, savedCustomThemeId, savedCustomColors, savedDynamic] = await Promise.all([
         AsyncStorage.getItem('accentColor'),
         AsyncStorage.getItem('themeMode'),
         AsyncStorage.getItem('customThemeId'),
         AsyncStorage.getItem('customColors'),
+        AsyncStorage.getItem('useDynamicColor'),
       ]);
+
+      if (savedDynamic !== null) {
+        setUseDynamicColor(savedDynamic === 'true');
+      }
       
       if (savedAccentColor) {
         // Ensure the saved accent color is a valid hex color from our predefined set
@@ -159,6 +177,15 @@ export const ThemeProvider = ({ children }) => {
     updateThemeMode(newMode);
   };
 
+  const updateDynamicColor = async (enabled) => {
+    try {
+      await AsyncStorage.setItem('useDynamicColor', String(!!enabled));
+      setUseDynamicColor(!!enabled);
+    } catch (error) {
+      console.error('Failed to save dynamic color setting:', error);
+    }
+  };
+
   const value = {
     theme,
     accentColor,
@@ -166,6 +193,9 @@ export const ThemeProvider = ({ children }) => {
     effectiveTheme: getEffectiveTheme(),
     isDark: getEffectiveTheme() === 'dark',
     currentThemeId: customThemeId,
+    useDynamicColor,
+    dynamicColorSupported: Platform.OS === 'android' && Number(Platform.Version) >= 31,
+    updateDynamicColor,
     updateAccentColor,
     updateThemeMode,
     setCustomTheme,

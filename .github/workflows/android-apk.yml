@@ -4,9 +4,15 @@ on:
   push:
     branches: ['**']
   workflow_dispatch:
+    inputs:
+      release:
+        description: Publish the APK as a GitHub release
+        required: false
+        default: true
+        type: boolean
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -16,6 +22,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -32,12 +40,14 @@ jobs:
       - name: Build APK with EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --platform android --profile preview --non-interactive --wait
+        run: |
+          eas build --platform android --profile preview --non-interactive --wait --json > eas-build.json
+          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('eas-build.json','utf8')); const build=Array.isArray(data)?data[0]:data; if(!build?.id) throw new Error('EAS did not return a build id'); fs.writeFileSync('eas-build-id', build.id);"
 
       - name: Download APK
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build:download --platform android --profile preview --latest --output ./FoundList-preview.apk
+        run: eas build:download --id "$(cat eas-build-id)" --output ./FoundList-preview.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -45,3 +55,19 @@ jobs:
           name: FoundList-preview-apk
           path: FoundList-preview.apk
           if-no-files-found: error
+
+      - name: Create GitHub release
+        if: github.event_name == 'workflow_dispatch' && inputs.release == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./app.json').expo.version")
+          tag="v${version}-build.${GITHUB_RUN_NUMBER}"
+          previous=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -n "$previous" ]; then changes=$(git log "$previous..HEAD" --pretty=format:'- %s' --no-merges); else changes=$(git log -12 --pretty=format:'- %s' --no-merges); fi
+          {
+            printf '## FoundList %s\n\nA calmer, clearer todo list for remembering what matters.\n\n### Changelog\n' "$tag"
+            printf '%s\n' "$changes"
+            printf '\n### Install\nDownload FoundList-preview.apk and install it on Android 10 or newer.\n'
+          } > release-notes.md
+          gh release create "$tag" FoundList-preview.apk --repo "$GITHUB_REPOSITORY" --title "FoundList $tag" --notes-file release-notes.md

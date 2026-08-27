@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Linking, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Linking, Modal, Switch } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTodos } from '../contexts/TodoContext';
@@ -7,7 +7,7 @@ import AboutScreen from './AboutScreen';
 import ThemeSelector from '../components/ThemeSelector';
 
 const SettingsScreen = () => {
-  const { theme } = useTheme();
+  const { theme, useDynamicColor, dynamicColorSupported, updateDynamicColor } = useTheme();
   const { todos, completedTodos, clearCompletedTodos, deleteTodo } = useTodos();
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -50,6 +50,24 @@ const SettingsScreen = () => {
       <Text style={[styles.section, { color: theme.colors.textSecondary }]}>APPEARANCE</Text>
       <View style={[styles.group, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
         <Row icon="palette" title="Theme and colors" subtitle="Choose a calm visual mode" onPress={() => setShowThemeSelector(true)} />
+        {dynamicColorSupported && (
+          <View style={[styles.row, { borderBottomColor: theme.colors.border }]}>
+            <View style={[styles.icon, { backgroundColor: theme.colors.accentLight }]}>
+              <Icon name="colorize" size={20} color={theme.colors.accent} />
+            </View>
+            <View style={styles.copy}>
+              <Text style={[styles.title, { color: theme.colors.textPrimary }]}>Material You colors</Text>
+              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Match your wallpaper (Android 12+)</Text>
+            </View>
+            <Switch
+              accessibilityLabel="Use Material You colors"
+              value={useDynamicColor}
+              onValueChange={updateDynamicColor}
+              trackColor={{ true: theme.colors.accentMedium }}
+              thumbColor={useDynamicColor ? theme.colors.accent : undefined}
+            />
+          </View>
+        )}
       </View>
 
       <Text style={[styles.section, { color: theme.colors.textSecondary }]}>YOUR LIST</Text>
