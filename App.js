@@ -8,7 +8,7 @@ import Toast from 'react-native-toast-message';
 
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import { TodoProvider, useTodos } from './src/contexts/TodoContext';
-import { GamificationProvider } from './src/contexts/GamificationContext';
+
 import AppNavigator from './src/navigation/AppNavigator';
 import LoadingScreen from './src/components/LoadingScreen';
 
@@ -87,11 +87,9 @@ export default function App() {
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <GamificationProvider>
-            <TodoProvider>
-              <AppContent />
-            </TodoProvider>
-          </GamificationProvider>
+          <TodoProvider>
+            <AppContent />
+          </TodoProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

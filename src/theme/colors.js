@@ -1,5 +1,5 @@
 export const accentColors = {
-  blue: '#007AFF',
+  blue: '#6D5EF5',
   purple: '#AF52DE',
   pink: '#FF2D92',
   red: '#FF453A',
@@ -14,19 +14,19 @@ export const accentColors = {
 export const baseColors = {
   // Dark theme colors
   dark: {
-    background: '#000000',
-    surface: '#1C1C1E',
-    surfaceSecondary: '#2C2C2E',
-    surfaceElevated: '#3A3A3C',
+    background: '#15151B',
+    surface: '#202027',
+    surfaceSecondary: '#292933',
+    surfaceElevated: '#33333F',
     
     // Text colors
     textPrimary: '#FFFFFF',
-    textSecondary: '#8E8E93',
-    textTertiary: '#636366',
+    textSecondary: '#B4B2C2',
+    textTertiary: '#797787',
     
     // Border and separator colors
-    border: '#38383A',
-    separator: '#38383A',
+    border: '#393944',
+    separator: '#393944',
     
     // Status colors
     success: '#30D158',
@@ -41,19 +41,19 @@ export const baseColors = {
   
   // Light theme colors
   light: {
-    background: '#FFFFFF',
-    surface: '#F2F2F7',
-    surfaceSecondary: '#FFFFFF',
+    background: '#F7F6F2',
+    surface: '#FFFFFF',
+    surfaceSecondary: '#F0EFF6',
     surfaceElevated: '#FFFFFF',
     
     // Text colors
-    textPrimary: '#000000',
-    textSecondary: '#6D6D70',
-    textTertiary: '#8E8E93',
+    textPrimary: '#1B1A22',
+    textSecondary: '#676572',
+    textTertiary: '#8E8B98',
     
     // Border and separator colors
-    border: '#C6C6C8',
-    separator: '#C6C6C8',
+    border: '#DEDBE5',
+    separator: '#DEDBE5',
     
     // Status colors
     success: '#34C759',

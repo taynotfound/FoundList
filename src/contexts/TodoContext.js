@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { useGamification } from './GamificationContext';
+
 import NotificationService from '../services/NotificationService';
 
 const TodoContext = createContext();
@@ -155,13 +155,6 @@ export const TodoProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState('smart'); // 'smart', 'dueDate', 'createdAt', 'alphabetical', 'priority'
   
-  // Get gamification context if available (it might not be ready initially)
-  let gamification = null;
-  try {
-    gamification = useGamification();
-  } catch (error) {
-    // GamificationProvider not ready yet, that's ok
-  }
 
   useEffect(() => {
     loadTodos();
@@ -255,10 +248,6 @@ export const TodoProvider = ({ children }) => {
     // Schedule smart notifications for the new todo
     await NotificationService.scheduleSmartNotifications(newTodo);
 
-    // Award points for creating a todo
-    if (gamification?.onTodoCreated) {
-      await gamification.onTodoCreated();
-    }
 
     Toast.show({
       type: 'success',
@@ -325,10 +314,6 @@ export const TodoProvider = ({ children }) => {
     // Update productivity patterns for smart notifications
     await NotificationService.updateProductivityPatterns(completedTodo);
 
-    // Award points for completing todo
-    if (gamification?.onTodoCompleted) {
-      await gamification.onTodoCompleted(todoToComplete);
-    }
 
     Toast.show({
       type: 'success',
