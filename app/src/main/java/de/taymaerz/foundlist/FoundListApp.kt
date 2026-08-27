@@ -9,6 +9,7 @@ class FoundListApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        de.taymaerz.foundlist.util.Prefs.init(this)
         Reminders.ensureChannel(this)
     }
 }
