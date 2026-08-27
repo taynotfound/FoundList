@@ -5,7 +5,7 @@
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -18,7 +18,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#353535"
       },
-      "package": "de.taymaerz.foundlist"
+      "package": "de.taymaerz.foundlist",
+      "minSdkVersion": 29
     },
     "web": {
       "favicon": "./assets/favicon.png"
